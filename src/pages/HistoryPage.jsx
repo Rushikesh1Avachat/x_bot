@@ -1,37 +1,27 @@
-import React, { useEffect, useState } from 'react';
-import { 
-  Container, Typography, Paper, Box, Avatar, Stack 
-} from '@mui/material';
+import React from 'react';
+import { Box, Typography, Paper, Avatar, Rating } from '@mui/material';
+import { TbRobot } from 'react-icons/tb';
 
 const HistoryPage = () => {
-  const [history, setHistory] = useState([]);
-
-  useEffect(() => {
-    // Requirements: Load persistent messages from localStorage
-    const data = JSON.parse(localStorage.getItem('soul_history') || '[]');
-    setHistory(data);
-  }, []);
+  // Pulling from the required storage key
+  const history = JSON.parse(localStorage.getItem("soul_history") || "[]");
 
   return (
-    <Box sx={{ 
-      minHeight: '100vh', 
-      background: 'linear-gradient(180deg, rgba(215, 199, 244, 0.2) 0%, rgba(151, 71, 255, 0.2) 100%)',
-      pt: 8, // Matching the high header placement
-      pb: 4 
-    }}>
-      <Container maxWidth="md">
-        {/* Header styling matching image_08ddd5.jpg */}
-        <Typography variant="h4" align="center" sx={{ mb: 6, fontWeight: 500, color: '#000', fontFamily: 'Ubuntu, sans-serif' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#F9F8FF' }}>
+      {/* 1. Main Content Area */}
+      <Box sx={{ flexGrow: 1, p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        
+        <Typography variant="h5" sx={{ mb: 4, fontWeight: 500 }}>
           Conversation History
         </Typography>
 
-        <Typography variant="h6" sx={{ mb: 2, fontWeight: 400, color: '#000', px: 1 }}>
-          Today's Chats
-        </Typography>
+        <Box sx={{ width: '100%', maxWidth: '900px' }}>
+          <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold' }}>
+            Today's Chats
+          </Typography>
 
-        <Stack spacing={3}>
           {history.length === 0 ? (
-            <Typography align="center" color="textSecondary">No history found.</Typography>
+            <Typography color="textSecondary">No saved conversations yet.</Typography>
           ) : (
             history.map((session) => (
               <Paper 
@@ -39,66 +29,41 @@ const HistoryPage = () => {
                 elevation={0} 
                 sx={{ 
                   p: 3, 
-                  borderRadius: '16px', 
-                  background: 'rgba(215, 199, 244, 0.5)', // Transparent lavender matching
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  mb: 1
+                  mb: 3, 
+                  borderRadius: '15px', 
+                  bgcolor: 'rgba(215, 199, 244, 0.4)', // The light purple background from your image
                 }}
               >
-                {session.chat.map((m, i) => (
-                  <Box key={i} sx={{ display: 'flex', gap: 2, mb: i === session.chat.length - 1 ? 0 : 4 }}>
-                    <Avatar 
-                      src={m.role === 'You' ? "/user-avatar.png" : "/ai-logo.png"} 
-                      sx={{ 
-                        width: 55, 
-                        height: 55, 
-                        border: '1px solid #fff',
-                        boxShadow: '0px 4px 12px rgba(0,0,0,0.08)'
-                      }}
-                    >
-                      {m.role === 'You' ? 'Y' : 'S'}
+                {/* Loop through the messages within this specific saved session */}
+                {session.chat.map((msg, index) => (
+                  <Box key={index} sx={{ display: 'flex', gap: 2, mb: index % 2 === 0 ? 2 : 0 }}>
+                    <Avatar sx={{ bgcolor: msg.role === 'You' ? '#9747FF' : '#D7C7F4' }}>
+                      {msg.role === 'You' ? 'Y' : <TbRobot color="black" />}
                     </Avatar>
                     
                     <Box sx={{ flexGrow: 1 }}>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 800, fontSize: '1rem' }}>
-                        {m.role}
+                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                        <span>{msg.role}</span>
                       </Typography>
                       
-                      <Typography component="p" variant="body1" sx={{ mt: 0.5, color: '#333', lineHeight: 1.5 }}>
-                        {m.text}
+                      <Typography component="p" variant="body1">
+                        {msg.text}
                       </Typography>
-                      
-                      {/* Interaction Meta (Time + Rating) */}
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
-                        <Typography variant="caption" sx={{ color: 'rgba(0,0,0,0.5)', fontSize: '0.8rem' }}>
-                          {m.time}
-                        </Typography>
 
-                        {/* Rating stars matching image_12cb3d.png */}
-                        {m.role === 'Soul AI' && m.rating > 0 && (
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            {[1, 2, 3, 4, 5].map((starIndex) => (
-                              <Typography 
-                                key={starIndex} 
-                                sx={{ 
-                                  fontSize: '18px', 
-                                  color: '#000',
-                                  mr: 0.3,
-                                  lineHeight: 1
-                                }}
-                              >
-                                {starIndex <= m.rating ? '★' : '☆'}
-                              </Typography>
-                            ))}
-                          </Box>
-                        )}
-                      </Box>
+                      <Typography variant="caption" color="textSecondary" sx={{ mr: 2 }}>
+                        {msg.time}
+                      </Typography>
 
-                      {/* Feedback row matching image_12cb3d.png */}
-                      {m.role === 'Soul AI' && m.feedback && (
-                        <Typography variant="body2" sx={{ mt: 1.5, color: '#000' }}>
-                          <span style={{ fontWeight: 800 }}>Feedback:</span> {m.feedback}
-                        </Typography>
+                      {/* Display Rating and Feedback only for the AI response in history */}
+                      {msg.role === 'Soul AI' && session.rating > 0 && (
+                        <Box sx={{ mt: 1 }}>
+                          <Rating value={session.rating} readOnly size="small" />
+                          {session.feedback && (
+                            <Typography variant="body2" sx={{ mt: 0.5 }}>
+                              <strong>Feedback:</strong> {session.feedback}
+                            </Typography>
+                          )}
+                        </Box>
                       )}
                     </Box>
                   </Box>
@@ -106,14 +71,13 @@ const HistoryPage = () => {
               </Paper>
             ))
           )}
-        </Stack>
-      </Container>
+        </Box>
+      </Box>
     </Box>
   );
 };
 
 export default HistoryPage;
-
 
 
 

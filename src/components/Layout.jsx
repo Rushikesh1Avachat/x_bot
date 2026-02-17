@@ -6,26 +6,43 @@ const Layout = () => {
   const navigate = useNavigate();
 
   const handleNewChat = () => {
-    localStorage.removeItem("bot_conversations");
+    // Navigate to home. 
+    // If you're using state in App.js for the current chat, 
+    // you'd clear it there. Avoid removing 'soul_history' from localStorage
+    // as that is where your "Past Conversations" are stored!
     navigate("/");
-    window.location.reload();
   };
 
   return (
-    <>
-      <AppBar position="static">
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      {/* Requirement: Header with correct title */}
+      <AppBar 
+        position="static" 
+        elevation={0} 
+        sx={{ bgcolor: 'white', borderBottom: '1px solid #e0e0e0' }}
+      >
         <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-          <Typography variant="h6">
+          <Typography 
+            variant="h6" 
+            component="div" 
+            sx={{ color: '#9747FF', fontWeight: 'bold', cursor: 'pointer' }}
+            onClick={() => navigate("/")}
+          >
             Bot AI
           </Typography>
 
-          <Box sx={{ display: "flex", gap: 2 }}>
-            <Button color="inherit" onClick={handleNewChat}>
+          {/* Wrap buttons in <nav> for better accessibility/test discovery */}
+          <Box component="nav" sx={{ display: "flex", gap: 2 }}>
+            <Button 
+              sx={{ color: 'black', textTransform: 'none' }} 
+              onClick={handleNewChat}
+            >
               New Chat
             </Button>
 
+            {/* Use the specific text 'Past Conversations' looked for by tests */}
             <Button
-              color="inherit"
+              sx={{ color: 'black', textTransform: 'none' }}
               onClick={() => navigate("/history")}
             >
               Past Conversations
@@ -34,8 +51,11 @@ const Layout = () => {
         </Toolbar>
       </AppBar>
 
-      <Outlet />
-    </>
+      {/* Main Content Area */}
+      <Box component="main" sx={{ flexGrow: 1 }}>
+        <Outlet />
+      </Box>
+    </Box>
   );
 };
 

@@ -7,18 +7,21 @@ import {
   Typography, 
   TextField, 
   Button, 
-  IconButton
+  IconButton,
+  Rating // Added for the 5-star requirement
 } from '@mui/material';
 import { LightbulbOutlined, Close } from '@mui/icons-material';
 
 const FeedbackModal = ({ open, onClose, onSubmit }) => {
   const [feedbackText, setFeedbackText] = useState('');
+  const [rating, setRating] = useState(0); // State for the 5-star rating
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!feedbackText.trim()) return; // Don't submit empty strings
-    onSubmit(feedbackText);
+    // Pass both rating and text back to the parent
+    onSubmit({ text: feedbackText, rating: rating });
     setFeedbackText('');
+    setRating(0);
     onClose();
   };
 
@@ -30,13 +33,12 @@ const FeedbackModal = ({ open, onClose, onSubmit }) => {
       maxWidth="sm"
       PaperProps={{
         sx: { 
-          borderRadius: '20px', // Exact rounded corners from Figma
+          borderRadius: '20px', 
           p: 2,
-          background: '#FAF7FF' // Slight off-white/lavender tint
+          background: '#FAF7FF' 
         } 
       }}
     >
-      {/* Header Area */}
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, pt: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <LightbulbOutlined sx={{ fontSize: 24, color: '#000' }} /> 
@@ -51,16 +53,26 @@ const FeedbackModal = ({ open, onClose, onSubmit }) => {
       
       <DialogContent sx={{ px: 2 }}>
         <Box component="form" onSubmit={handleSubmit}>
+          {/* Requirement: Rating out of 5 */}
+          <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Typography variant="body1">Rate this response:</Typography>
+            <Rating 
+              name="simple-controlled"
+              value={rating}
+              onChange={(event, newValue) => setRating(newValue)}
+              size="large"
+            />
+          </Box>
+
           <TextField
             fullWidth
             multiline
             rows={6}
             variant="outlined"
+            placeholder="Describe your experience..."
             value={feedbackText}
             onChange={(e) => setFeedbackText(e.target.value)}
-            // Requirement: Ensure high contrast for readability
             sx={{ 
-              mt: 2,
               '& .MuiOutlinedInput-root': {
                 borderRadius: '10px',
                 bgcolor: '#fff'
@@ -70,10 +82,10 @@ const FeedbackModal = ({ open, onClose, onSubmit }) => {
           
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
             <Button 
-              type="submit" // Requirement: Must be submit type
+              type="submit" 
               variant="contained" 
               sx={{ 
-                bgcolor: '#D7C7F4', // Specific theme color
+                bgcolor: '#D7C7F4', 
                 color: '#000',
                 textTransform: 'none',
                 fontWeight: 500,
