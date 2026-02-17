@@ -1,75 +1,89 @@
-import React, { useState } from 'react';
-import { Box, TextField, Button, Typography, Paper, Avatar, IconButton, Grid, Container } from '@mui/material';
-import { TbRobot } from 'react-icons/tb';
-import { MdThumbUpOffAlt, MdThumbDownOffAlt } from 'react-icons/md';
-import FeedbackModal from "../components/FeedbackModal"
-const ChatPage = ({ botData }) => {
+import React, { useState, useEffect } from 'react';
+import { Box, Container, TextField, Button, Grid, Paper, Typography, Avatar } from '@mui/material';
+import axios from 'axios';
+import { TbRobot } from 'react-icons/tb'; // Using the React Icon we discussed
+import ChatBubble from '../components/ChatBubble';
+import FeedbackModal from '../components/FeedbackModal';
+
+const ChatPage = () => {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([]);
+  const [data, setData] = useState([]);
   const [openFeedback, setOpenFeedback] = useState(false);
-  const [activeMsgIndex, setActiveMsgIndex] = useState(null);
 
-  // Logic to handle question matching
-  const getBotResponse = (userInput) => {
-    const clean = (str) => str.toLowerCase().trim().replace(/[?]$/, "");
-    const match = botData.find(item => clean(item.question) === clean(userInput));
-    return match ? match.response : "As an AI Language Model, I don't have the details";
-  };
+  // Fetch all 54 questions on mount
+  useEffect(() => {
+    axios.get('/api/data.json')
+      .then(res => setData(res.data))
+      .catch(err => console.error("Error loading JSON:", err));
+  }, []);
 
   const handleAsk = (e) => {
-    if (e) e.preventDefault();
+    if (e) e.preventDefault(); // Requirement: Handles type="submit"
     if (!input.trim()) return;
 
+    // Normalization: Remove trailing '?' and lowercase for better matching
+    const cleanStr = (str) => str.toLowerCase().trim().replace(/\?$/, "");
+    const userQuery = cleanStr(input);
+    
+    const match = data.find(item => cleanStr(item.question) === userQuery);
+
     const userMsg = { 
-      role: 'You', 
+      role: 'user', 
       text: input, 
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
     };
 
     const botMsg = { 
-      role: 'Soul AI', 
-      text: getBotResponse(input), 
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      feedback: '' 
+      role: 'bot', 
+      // Requirement: Returns specific match or standard fallback
+      text: match ? match.response : "As an AI Language Model, I don't have the details", 
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
     };
 
     setMessages([...messages, userMsg, botMsg]);
     setInput('');
   };
 
-  // Logic for LocalStorage persistence
-  const handleSaveChat = () => {
+  const saveToHistory = () => {
     if (messages.length === 0) return;
     const history = JSON.parse(localStorage.getItem('soul_history') || '[]');
-    const newEntry = {
-      id: Date.now(),
-      date: new Date().toLocaleDateString(),
-      chat: messages
-    };
-    localStorage.setItem('soul_history', JSON.stringify([...history, newEntry]));
-    alert("Conversation saved to Past Conversations!");
+    history.push({ 
+      id: Date.now(), 
+      timestamp: new Date().toLocaleString(),
+      chat: messages 
+    });
+    localStorage.setItem('soul_history', JSON.stringify(history));
+    setMessages([]);
+    alert("Chat Saved to Past Conversations!");
   };
 
   return (
-    <Container maxWidth="lg" sx={{ height: '90vh', display: 'flex', flexDirection: 'column', p: 3 }}>
-      <Typography variant="h4" sx={{ color: '#9747FF', mb: 4, fontWeight: 'bold', fontFamily: 'Ubuntu' }}>Bot AI</Typography>
+    <Container maxWidth="md" sx={{ height: '90vh', display: 'flex', flexDirection: 'column', py: 2, fontFamily: 'Ubuntu' }}>
       
-      <Box sx={{ flexGrow: 1, overflowY: 'auto', mb: 2 }}>
+      {/* Bot Header Title */}
+      <Typography variant="h4" sx={{ color: '#9747FF', mb: 2, fontWeight: 'bold' }}>Bot AI</Typography>
+
+      <Box sx={{ flexGrow: 1, overflowY: 'auto', mb: 2, px: 1 }}>
         {messages.length === 0 ? (
-          <Box textAlign="center" mt={10}>
-            <Typography variant="h5" sx={{ mb: 4, fontWeight: 'bold' }}>How Can I Help You Today?</Typography>
-            <Avatar sx={{ width: 80, height: 80, mx: 'auto', bgcolor: '#D7C7F4', mb: 4 }}>
-               <TbRobot size={50} color="#3C3C3C" />
+          <Box textAlign="center" mt={5}>
+            <Typography variant="h5" fontWeight="bold">How Can I Help You Today?</Typography>
+            
+            {/* Unified Bot Icon */}
+            <Avatar sx={{ width: 60, height: 60, mx: 'auto', my: 3, bgcolor: '#D7C7F4' }}>
+              <TbRobot size={40} color="#3C3C3C" />
             </Avatar>
+
             <Grid container spacing={2}>
-              {/* Suggestion Cards */}
-              {["Hi, how are you", "What is a Promise in JavaScript?"].map((q, idx) => (
-                <Grid item xs={6} key={idx}>
+              {/* Suggestion Chips: First 4 questions from JSON */}
+              {data.slice(0, 4).map(item => (
+                <Grid item xs={6} key={item.id}>
                   <Paper 
-                    sx={{ p: 2, cursor: 'pointer', '&:hover': { bgcolor: '#f0f0f0' } }} 
-                    onClick={() => { setInput(q); }}
+                    elevation={1}
+                    sx={{ p: 2, cursor: 'pointer', '&:hover': { bgcolor: '#F0F0F0' }, borderRadius: 2 }} 
+                    onClick={() => setInput(item.question)}
                   >
-                    <Typography fontWeight="bold">{q}</Typography>
+                    <Typography fontWeight="bold" variant="body2">{item.question}</Typography>
                     <Typography variant="caption" color="textSecondary">Get instant answers</Typography>
                   </Paper>
                 </Grid>
@@ -77,64 +91,40 @@ const ChatPage = ({ botData }) => {
             </Grid>
           </Box>
         ) : (
-          messages.map((msg, i) => (
-            <Paper 
+          messages.map((m, i) => (
+            <ChatBubble 
               key={i} 
-              elevation={0} 
-              sx={{ 
-                p: 2, mb: 2, 
-                bgcolor: msg.role === 'You' ? '#FFFFFF' : '#AF9FCD33', 
-                borderRadius: '20px',
-                border: '1px solid #E0E0E0',
-                '&:hover .actions': { opacity: 1 }
-              }}
-            >
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <Avatar sx={{ bgcolor: msg.role === 'You' ? '#9747FF' : '#D7C7F4' }}>
-                  {msg.role === 'You' ? 'Y' : <TbRobot />}
-                </Avatar>
-                <Box sx={{ flexGrow: 1 }}>
-                  <Typography fontWeight="bold">{msg.role}</Typography>
-                  <Typography variant="body1">{msg.text}</Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1 }}>
-                    <Typography variant="caption" color="textSecondary">{msg.time}</Typography>
-                    {msg.role === 'Soul AI' && (
-                      <Box className="actions" sx={{ opacity: 0, transition: '0.2s' }}>
-                        <IconButton size="small"><MdThumbUpOffAlt fontSize="small" /></IconButton>
-                        <IconButton size="small" onClick={() => { setActiveMsgIndex(i); setOpenFeedback(true); }}>
-                          <MdThumbDownOffAlt fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    )}
-                  </Box>
-                  {msg.feedback && (
-                    <Typography variant="body2" sx={{ mt: 1 }}><strong>Feedback:</strong> {msg.feedback}</Typography>
-                  )}
-                </Box>
-              </Box>
-            </Paper>
+              message={m} 
+              onOpenFeedback={() => setOpenFeedback(true)} 
+            />
           ))
         )}
       </Box>
 
-      {/* Input Area */}
-      <Box component="form" onSubmit={handleAsk} sx={{ display: 'flex', gap: 2 }}>
+      {/* Input Form Area */}
+      <Box component="form" onSubmit={handleAsk} sx={{ display: 'flex', gap: 2, pb: 2 }}>
         <TextField 
-          fullWidth value={input} 
+          fullWidth 
+          placeholder="Message Bot AI..." 
+          value={input} 
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Type a message..." sx={{ bgcolor: 'white' }}
+          sx={{ bgcolor: 'white' }}
         />
-        <Button type="submit" variant="contained" sx={{ bgcolor: '#D7C7F4', color: 'black', px: 4 }}>Ask</Button>
-        <Button variant="contained" onClick={handleSaveChat} sx={{ bgcolor: '#D7C7F4', color: 'black' }}>Save</Button>
+        <Button type="submit" variant="contained" sx={{ bgcolor: '#9747FF', '&:hover': { bgcolor: '#7B39D1' } }}>
+          Ask
+        </Button>
+        <Button type="button" variant="outlined" color="secondary" onClick={saveToHistory}>
+          Save
+        </Button>
       </Box>
 
+      {/* Feedback Dialog */}
       <FeedbackModal 
         open={openFeedback} 
         onClose={() => setOpenFeedback(false)} 
-        onSubmit={(text) => {
-          const updated = [...messages];
-          updated[activeMsgIndex].feedback = text;
-          setMessages(updated);
+        onSubmit={(feedback) => {
+          console.log("User Feedback:", feedback);
+          alert("Thank you for your feedback!");
         }}
       />
     </Container>

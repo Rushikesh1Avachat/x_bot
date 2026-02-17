@@ -1,19 +1,16 @@
 import React, { useState } from 'react';
-import { Box, TextField, Button, Typography, Paper, Avatar, IconButton } from '@mui/material';
-import { TbRobot } from 'react-icons/tb';
-import { MdThumbUpOffAlt, MdThumbDownOffAlt } from 'react-icons/md'; // Icons for feedback
-import FeedbackModal from './FeedbackModal'; // Import your new modal
+import { Box, TextField, Button, Typography, Paper, Avatar } from '@mui/material';
+import { TbRobot } from 'react-icons/tb'; // Import React Icon
 
 const ChatPage = ({ botData }) => {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([]);
-  const [openFeedback, setOpenFeedback] = useState(false);
-  const [activeMessageIndex, setActiveMessageIndex] = useState(null);
 
   const handleAsk = (e) => {
     e.preventDefault(); 
     if (!input.trim()) return;
 
+    // Normalization logic to match JSON questions
     const clean = (str) => str.toLowerCase().trim().replace(/\?$/, "");
     const foundMatch = botData.find(item => clean(item.question) === clean(input));
 
@@ -25,26 +22,13 @@ const ChatPage = ({ botData }) => {
 
     const botMsg = { 
       role: 'Soul AI', 
-      // Requirement: Show default message if not present in JSON
+      // Fallback message if no match found
       text: foundMatch ? foundMatch.response : "As an AI Language Model, I don't have the details", 
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      feedback: null // Store feedback per message
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
     };
 
     setMessages([...messages, userMsg, botMsg]);
     setInput('');
-  };
-
-  const handleFeedbackClick = (index) => {
-    setActiveMessageIndex(index);
-    setOpenFeedback(true);
-  };
-
-  const handleFeedbackSubmit = (text) => {
-    const updatedMessages = [...messages];
-    updatedMessages[activeMessageIndex].feedback = text;
-    setMessages(updatedMessages);
-    // Requirement: Persistent storage for feedback could be added here
   };
 
   const handleSave = () => {
@@ -62,52 +46,22 @@ const ChatPage = ({ botData }) => {
         {messages.length === 0 ? (
           <Box textAlign="center" mt={10}>
             <Typography variant="h5" sx={{ mb: 2 }}>How Can I Help You Today?</Typography>
+            {/* Replaced image with React Icon in an Avatar */}
             <Avatar sx={{ width: 80, height: 80, mx: 'auto', bgcolor: '#D7C7F4', border: '1px solid #D9D9D9' }}>
                <TbRobot size={50} color="#3C3C3C" />
             </Avatar>
           </Box>
         ) : (
           messages.map((msg, i) => (
-            <Paper 
-              key={i} 
-              elevation={0} 
-              sx={{ 
-                p: 2, 
-                mb: 2, 
-                bgcolor: msg.role === 'You' ? '#FFFFFF' : '#AF9FCD33', 
-                borderRadius: '20px',
-                position: 'relative',
-                '&:hover .feedback-icons': { opacity: 1 } // Show icons on hover
-              }}
-            >
+            <Paper key={i} elevation={0} sx={{ p: 2, mb: 2, bgcolor: msg.role === 'You' ? '#FFFFFF' : '#AF9FCD33', borderRadius: '20px' }}>
               <Box sx={{ display: 'flex', gap: 2 }}>
                 <Avatar sx={{ bgcolor: msg.role === 'You' ? '#9747FF' : '#D7C7F4' }}>
                   {msg.role === 'You' ? 'Y' : <TbRobot />}
                 </Avatar>
-                <Box sx={{ flexGrow: 1 }}>
+                <Box>
                   <Typography fontWeight="bold">{msg.role}</Typography>
                   <Typography variant="body1">{msg.text}</Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1 }}>
-                    <Typography variant="caption" color="textSecondary">{msg.time}</Typography>
-                    
-                    {/* Feedback triggers */}
-                    {msg.role === 'Soul AI' && (
-                      <Box className="feedback-icons" sx={{ opacity: 0, transition: '0.3s' }}>
-                        <IconButton size="small"><MdThumbUpOffAlt fontSize="small" /></IconButton>
-                        <IconButton 
-                          size="small" 
-                          onClick={() => handleFeedbackClick(i)}
-                        >
-                          <MdThumbDownOffAlt fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    )}
-                  </Box>
-                  {msg.feedback && (
-                    <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic', color: '#555' }}>
-                      <strong>Feedback:</strong> {msg.feedback}
-                    </Typography>
-                  )}
+                  <Typography variant="caption" color="textSecondary">{msg.time}</Typography>
                 </Box>
               </Box>
             </Paper>
@@ -115,7 +69,6 @@ const ChatPage = ({ botData }) => {
         )}
       </Box>
 
-      {/* Input Area */}
       <Box component="form" onSubmit={handleAsk} sx={{ display: 'flex', gap: 2 }}>
         <TextField 
           fullWidth 
@@ -127,13 +80,6 @@ const ChatPage = ({ botData }) => {
         <Button type="submit" variant="contained" sx={{ bgcolor: '#D7C7F4', color: 'black', '&:hover': { bgcolor: '#9747FF' } }}>Ask</Button>
         <Button variant="contained" onClick={handleSave} sx={{ bgcolor: '#D7C7F4', color: 'black' }}>Save</Button>
       </Box>
-
-      {/* Modal Integration */}
-      <FeedbackModal 
-        open={openFeedback} 
-        onClose={() => setOpenFeedback(false)} 
-        onSubmit={handleFeedbackSubmit}
-      />
     </Box>
   );
 };
