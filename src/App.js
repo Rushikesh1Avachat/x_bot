@@ -1,24 +1,26 @@
-import React, { useState } from "react";
-import { Routes, Route } from "react-router-dom";
-import Layout from "./components/Layout";
-import ChatPage from "./pages/ChatPage";
-import HistoryPage from "./pages/HistoryPage";
-import botData from "./api/data.json";
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Layout from './components/Layout';
+import ChatPage from './pages/ChatPage';
+import HistoryPage from './pages/HistoryPage';
 
 function App() {
-  const [chatKey, setChatKey] = useState(0);
+  // Key to force a re-mount of ChatPage for a fresh state on New Chat
+  const [chatId, setChatId] = useState(Date.now());
 
-  // Requirement: Logic for "New Chat" button to reset the state
-  const startNewChat = () => setChatKey(prev => prev + 1);
+  const handleNewChat = () => {
+    setChatId(Date.now()); // Resets ChatPage state
+  };
 
   return (
-    <Routes>
-      <Route element={<Layout onNewChat={startNewChat} />}>
-        {/* The 'key' forces React to destroy and recreate the ChatPage for a New Chat */}
-        <Route path="/" element={<ChatPage key={chatKey} botData={botData} />} />
-        <Route path="/history" element={<HistoryPage />} />
-      </Route>
-    </Routes>
+  
+      <Routes>
+        <Route path="/" element={<Layout onNewChat={handleNewChat} />}>
+          <Route index element={<ChatPage key={chatId} />} />
+          <Route path="history" element={<HistoryPage />} />
+        </Route>
+      </Routes>
+ 
   );
 }
 

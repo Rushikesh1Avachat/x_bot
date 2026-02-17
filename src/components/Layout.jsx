@@ -1,6 +1,6 @@
-import React from "react";
-import { Box, Typography, List, ListItem, ListItemButton, ListItemText } from "@mui/material";
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import React from 'react';
+import { Box, Typography,  List, ListItem, ListItemButton, ListItemText } from '@mui/material';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { TbEdit } from "react-icons/tb";
 
 const Layout = ({ onNewChat }) => {
@@ -9,9 +9,12 @@ const Layout = ({ onNewChat }) => {
 
   return (
     <Box sx={{ display: 'flex', height: '100vh', bgcolor: 'white' }}>
-      {/* Sidebar - Matches image_24907e.png */}
+      {/* Sidebar Navigation */}
       <Box sx={{ width: 280, borderRight: '1px solid #E0E0E0', display: 'flex', flexDirection: 'column' }}>
-        <Box sx={{ p: 2, bgcolor: '#D7C7F4', m: 2, borderRadius: '10px', display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => { onNewChat(); navigate("/"); }}>
+        <Box 
+          sx={{ p: 2, bgcolor: '#D7C7F4', m: 2, borderRadius: '10px', display: 'flex', alignItems: 'center', cursor: 'pointer' }} 
+          onClick={() => { onNewChat(); navigate("/"); }}
+        >
           <TbEdit size={24} style={{ marginRight: 10 }} />
           <Typography variant="h6">New Chat</Typography>
         </Box>
@@ -29,7 +32,7 @@ const Layout = ({ onNewChat }) => {
           <ListItem disablePadding>
             <ListItemButton 
               selected={location.pathname === "/history"} 
-              onClick={() => navigate("/history")}
+              onClick={() => navigate("/history")} // Requirement 4
               sx={{ borderRadius: '10px' }}
             >
               <ListItemText primary="Past Conversations" />
@@ -40,7 +43,10 @@ const Layout = ({ onNewChat }) => {
 
       {/* Main Content Area */}
       <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-        <Typography variant="h4" sx={{ p: 3, color: '#9747FF', fontWeight: 'bold' }}>Bot AI</Typography>
+        {/* Requirement 5: Bot AI Header */}
+        <Typography variant="h4" sx={{ p: 3, color: '#9747FF', fontWeight: 'bold' }}>
+          Bot AI
+        </Typography>
         <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
           <Outlet />
         </Box>
