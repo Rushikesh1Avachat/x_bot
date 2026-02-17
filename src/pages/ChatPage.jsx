@@ -1,133 +1,139 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Container, TextField, Button, Grid, Paper, Typography, Avatar } from '@mui/material';
-import axios from 'axios';
-import { TbRobot } from 'react-icons/tb'; // Using the React Icon we discussed
-import ChatBubble from '../components/ChatBubble';
-import FeedbackModal from '../components/FeedbackModal';
+import React, { useState } from 'react';
+import { Box, TextField, Button, Typography, Paper, Avatar, Grid, IconButton } from '@mui/material';
+import { TbRobot } from 'react-icons/tb';
+import { ThumbUpOutlined, ThumbDownOutlined } from '@mui/icons-material'; // Icons for rating
+import FeedbackModal from '../components/FeedbackModal'; // Import your modal component
 
-const ChatPage = () => {
+const ChatPage = ({ botData }) => {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([]);
-  const [data, setData] = useState([]);
-  const [openFeedback, setOpenFeedback] = useState(false);
+  
+  // State for Feedback Modal
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [activeMessageIndex, setActiveMessageIndex] = useState(null);
 
-  // Fetch all 54 questions on mount
-  useEffect(() => {
-    axios.get('/api/data.json')
-      .then(res => setData(res.data))
-      .catch(err => console.error("Error loading JSON:", err));
-  }, []);
+  const handleAsk = (e, customInput) => {
+    if (e) e.preventDefault();
+    const query = customInput || input;
+    if (!query.trim()) return;
 
-  const handleAsk = (e) => {
-    if (e) e.preventDefault(); // Requirement: Handles type="submit"
-    if (!input.trim()) return;
+    const clean = (str) => str.toLowerCase().trim().replace(/\?$/, "");
+    const foundMatch = botData.find(item => clean(item.question) === clean(query));
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    // Normalization: Remove trailing '?' and lowercase for better matching
-    const cleanStr = (str) => str.toLowerCase().trim().replace(/\?$/, "");
-    const userQuery = cleanStr(input);
-    
-    const match = data.find(item => cleanStr(item.question) === userQuery);
-
-    const userMsg = { 
-      role: 'user', 
-      text: input, 
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
-    };
-
+    const userMsg = { role: 'You', text: query, time };
     const botMsg = { 
-      role: 'bot', 
-      // Requirement: Returns specific match or standard fallback
-      text: match ? match.response : "As an AI Language Model, I don't have the details", 
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+      role: 'Soul AI', 
+      text: foundMatch ? foundMatch.response : "As an AI Language Model, I don't have the details", 
+      time,
+      rating: 0,      // Initialize rating
+      feedback: ''    // Initialize feedback text
     };
 
-    setMessages([...messages, userMsg, botMsg]);
+    setMessages((prev) => [...prev, userMsg, botMsg]);
     setInput('');
   };
 
-  const saveToHistory = () => {
-    if (messages.length === 0) return;
+  // Function to handle opening the modal
+  const handleFeedbackClick = (index) => {
+    setActiveMessageIndex(index);
+    setIsFeedbackOpen(true);
+  };
+
+  // Function to save the feedback into the message state
+  const handleFeedbackSubmit = (text) => {
+    const updatedMessages = [...messages];
+    updatedMessages[activeMessageIndex].feedback = text;
+    // You can also set a default rating here if Liked vs Disliked
+    setMessages(updatedMessages);
+  };
+
+  const handleSave = () => {
     const history = JSON.parse(localStorage.getItem('soul_history') || '[]');
-    history.push({ 
-      id: Date.now(), 
-      timestamp: new Date().toLocaleString(),
-      chat: messages 
-    });
+    history.push({ id: Date.now(), chat: messages, date: new Date().toLocaleDateString() });
     localStorage.setItem('soul_history', JSON.stringify(history));
-    setMessages([]);
-    alert("Chat Saved to Past Conversations!");
+    alert("Conversation saved!");
   };
 
   return (
-    <Container maxWidth="md" sx={{ height: '90vh', display: 'flex', flexDirection: 'column', py: 2, fontFamily: 'Ubuntu' }}>
-      
-      {/* Bot Header Title */}
+    <Box sx={{ 
+      height: '90vh', display: 'flex', flexDirection: 'column', p: 3, 
+      background: 'linear-gradient(180deg, rgba(215, 199, 244, 0.2) 0%, rgba(151, 71, 255, 0.2) 100%)' 
+    }}>
       <Typography variant="h4" sx={{ color: '#9747FF', mb: 2, fontWeight: 'bold' }}>Bot AI</Typography>
-
+      
       <Box sx={{ flexGrow: 1, overflowY: 'auto', mb: 2, px: 1 }}>
         {messages.length === 0 ? (
-          <Box textAlign="center" mt={5}>
-            <Typography variant="h5" fontWeight="bold">How Can I Help You Today?</Typography>
-            
-            {/* Unified Bot Icon */}
-            <Avatar sx={{ width: 60, height: 60, mx: 'auto', my: 3, bgcolor: '#D7C7F4' }}>
-              <TbRobot size={40} color="#3C3C3C" />
-            </Avatar>
-
-            <Grid container spacing={2}>
-              {/* Suggestion Chips: First 4 questions from JSON */}
-              {data.slice(0, 4).map(item => (
-                <Grid item xs={6} key={item.id}>
-                  <Paper 
-                    elevation={1}
-                    sx={{ p: 2, cursor: 'pointer', '&:hover': { bgcolor: '#F0F0F0' }, borderRadius: 2 }} 
-                    onClick={() => setInput(item.question)}
-                  >
-                    <Typography fontWeight="bold" variant="body2">{item.question}</Typography>
-                    <Typography variant="caption" color="textSecondary">Get instant answers</Typography>
-                  </Paper>
-                </Grid>
-              ))}
-            </Grid>
+          /* Landing View Code ... (Omitted for brevity, keep your existing Grid here) */
+          <Box sx={{ textAlign: 'center', mt: 4 }}>
+             <Typography variant="h4" sx={{ mb: 4 }}>How Can I Help You Today?</Typography>
+             <Avatar sx={{ width: 80, height: 80, mx: 'auto', bgcolor: 'white', mb: 4 }}><TbRobot size={50} color="#3C3C3C" /></Avatar>
+             <Grid container spacing={2}>
+               {botData.map((item) => (
+                 <Grid item xs={6} key={item.id}>
+                   <Paper onClick={() => handleAsk(null, item.question)} sx={{ p: 2, cursor: 'pointer', borderRadius: '12px', border: '1px solid #E0E0E0' }}>
+                     <Typography fontWeight="bold">{item.question}</Typography>
+                   </Paper>
+                 </Grid>
+               ))}
+             </Grid>
           </Box>
         ) : (
-          messages.map((m, i) => (
-            <ChatBubble 
-              key={i} 
-              message={m} 
-              onOpenFeedback={() => setOpenFeedback(true)} 
-            />
-          ))
+          /* Chat View */
+          <Box sx={{ maxWidth: '900px', mx: 'auto' }}>
+            {messages.map((msg, i) => (
+              <Paper key={i} elevation={0} sx={{ p: 2, mb: 2, bgcolor: 'white', borderRadius: '15px', border: '1px solid #E0E0E0', position: 'relative', '&:hover .feedback-icons': { opacity: 1 } }}>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Avatar sx={{ bgcolor: msg.role === 'You' ? '#9747FF' : '#D7C7F4' }}>
+                    {msg.role === 'You' ? 'Y' : <TbRobot color="black" />}
+                  </Avatar>
+                  <Box sx={{ flexGrow: 1 }}>
+                    <Typography variant="subtitle2" fontWeight="bold">{msg.role}</Typography>
+                    <Typography variant="body1" sx={{ my: 0.5 }}>{msg.text}</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="caption" color="textSecondary">{msg.time}</Typography>
+                      
+                      {/* Rating Icons for Bot Only */}
+                      {msg.role === 'Soul AI' && (
+                        <Box className="feedback-icons" sx={{ display: 'flex', opacity: 0.5, transition: '0.3s' }}>
+                          <IconButton size="small" onClick={() => handleFeedbackClick(i)}>
+                            <ThumbUpOutlined fontSize="inherit" />
+                          </IconButton>
+                          <IconButton size="small" onClick={() => handleFeedbackClick(i)}>
+                            <ThumbDownOutlined fontSize="inherit" />
+                          </IconButton>
+                        </Box>
+                      )}
+                    </Box>
+
+                    {/* Show saved feedback if it exists */}
+                    {msg.feedback && (
+                      <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic', color: '#555' }}>
+                        <strong>Feedback:</strong> {msg.feedback}
+                      </Typography>
+                    )}
+                  </Box>
+                </Box>
+              </Paper>
+            ))}
+          </Box>
         )}
       </Box>
 
-      {/* Input Form Area */}
-      <Box component="form" onSubmit={handleAsk} sx={{ display: 'flex', gap: 2, pb: 2 }}>
-        <TextField 
-          fullWidth 
-          placeholder="Message Bot AI..." 
-          value={input} 
-          onChange={(e) => setInput(e.target.value)}
-          sx={{ bgcolor: 'white' }}
-        />
-        <Button type="submit" variant="contained" sx={{ bgcolor: '#9747FF', '&:hover': { bgcolor: '#7B39D1' } }}>
-          Ask
-        </Button>
-        <Button type="button" variant="outlined" color="secondary" onClick={saveToHistory}>
-          Save
-        </Button>
+      {/* Input Form */}
+      <Box component="form" onSubmit={handleAsk} sx={{ display: 'flex', gap: 2, maxWidth: '900px', mx: 'auto', width: '100%' }}>
+        <TextField fullWidth value={input} onChange={(e) => setInput(e.target.value)} placeholder="Type your question here..." sx={{ bgcolor: 'white', borderRadius: '8px' }} />
+        <Button type="submit" variant="contained" sx={{ bgcolor: '#D7C7F4', color: 'black', px: 4 }}>Ask</Button>
+        <Button variant="contained" onClick={handleSave} sx={{ bgcolor: '#D7C7F4', color: 'black', px: 4 }}>Save</Button>
       </Box>
 
-      {/* Feedback Dialog */}
+      {/* The same to same Modal */}
       <FeedbackModal 
-        open={openFeedback} 
-        onClose={() => setOpenFeedback(false)} 
-        onSubmit={(feedback) => {
-          console.log("User Feedback:", feedback);
-          alert("Thank you for your feedback!");
-        }}
+        open={isFeedbackOpen} 
+        onClose={() => setIsFeedbackOpen(false)} 
+        onSubmit={handleFeedbackSubmit} 
       />
-    </Container>
+    </Box>
   );
 };
 
