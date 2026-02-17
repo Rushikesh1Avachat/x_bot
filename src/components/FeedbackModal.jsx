@@ -16,6 +16,7 @@ const FeedbackModal = ({ open, onClose, onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!feedbackText.trim()) return; // Don't submit empty strings
     onSubmit(feedbackText);
     setFeedbackText('');
     onClose();
@@ -28,23 +29,27 @@ const FeedbackModal = ({ open, onClose, onSubmit }) => {
       fullWidth 
       maxWidth="sm"
       PaperProps={{
-        sx: { borderRadius: '15px', p: 1 } // Rounded corners as per image
+        sx: { 
+          borderRadius: '20px', // Exact rounded corners from Figma
+          p: 2,
+          background: '#FAF7FF' // Slight off-white/lavender tint
+        } 
       }}
     >
       {/* Header Area */}
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, pt: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <LightbulbOutlined sx={{ fontSize: 28 }} /> 
-          <Typography variant="h6" sx={{ fontSize: '1.1rem' }}>
+          <LightbulbOutlined sx={{ fontSize: 24, color: '#000' }} /> 
+          <Typography variant="h6" sx={{ fontSize: '1.2rem', fontWeight: 400, color: '#000' }}>
             Provide Additional Feedback
           </Typography>
         </Box>
-        <IconButton onClick={onClose} size="small">
+        <IconButton onClick={onClose} size="small" sx={{ color: '#000' }}>
           <Close />
         </IconButton>
       </DialogTitle>
       
-      <DialogContent>
+      <DialogContent sx={{ px: 2 }}>
         <Box component="form" onSubmit={handleSubmit}>
           <TextField
             fullWidth
@@ -53,25 +58,29 @@ const FeedbackModal = ({ open, onClose, onSubmit }) => {
             variant="outlined"
             value={feedbackText}
             onChange={(e) => setFeedbackText(e.target.value)}
+            // Requirement: Ensure high contrast for readability
             sx={{ 
-              mt: 1,
+              mt: 2,
               '& .MuiOutlinedInput-root': {
                 borderRadius: '10px',
+                bgcolor: '#fff'
               }
             }}
           />
           
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
             <Button 
-              type="submit"
+              type="submit" // Requirement: Must be submit type
               variant="contained" 
               sx={{ 
-                bgcolor: '#D7C7F4', // Light purple from your images
-                color: 'black',
+                bgcolor: '#D7C7F4', // Specific theme color
+                color: '#000',
                 textTransform: 'none',
-                px: 4,
-                borderRadius: '8px',
-                '&:hover': { bgcolor: '#9747FF', color: 'white' } 
+                fontWeight: 500,
+                px: 5,
+                py: 1,
+                borderRadius: '10px',
+                '&:hover': { bgcolor: '#AF94E8' } 
               }}
             >
               Submit

@@ -87,7 +87,7 @@ const HistoryPage = () => {
                                   lineHeight: 1
                                 }}
                               >
-                                {starIndex <= m.rating ? '*' : '★'}
+                                {starIndex <= m.rating ? '★' : '☆'}
                               </Typography>
                             ))}
                           </Box>
@@ -113,3 +113,8 @@ const HistoryPage = () => {
 };
 
 export default HistoryPage;
+
+
+
+
+
