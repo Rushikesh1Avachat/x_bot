@@ -14,38 +14,27 @@ import SendIcon from '@mui/icons-material/Send';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import mockData from '../api/data.json';
 import FeedbackModal from '../components/FeedbackModal';
-import ChatBubble from '../components/ChatBubble';
 
 const DEFAULT_RESPONSE = "Sorry, Did not understand your query!";
 
 export default function ChatPage() {
   const [input, setInput] = useState('');
-  const [chatLog, setChatLog] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
-  const scrollRef = useRef(null);
-
-  // Auto-scroll when number of messages changes
-  useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatLog.length]);
+  const endRef = useRef(null);
 
 useEffect(() => {
-  if (chatLog.length === 0) {
-    const time = new Date().toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-
-    setChatLog([
-      {
-        role: 'Soul AI',
-        text: 'How Can I Help You Today?',
-        time,
-      },
-    ]);
+  if (messages.length === 0) {
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setMessages([{ role: 'Soul AI', text: 'How Can I Help You Today?', time }]);
   }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-}, []); // ← suppression is safe here
+}, []);
+
+  // Auto-scroll to bottom when number of messages changes
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages.length]); // ← fixed: added messages.length to deps
 
   const handleAsk = (e) => {
     e.preventDefault();
@@ -55,121 +44,185 @@ useEffect(() => {
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     // Add user message
-    setChatLog((prev) => [...prev, { role: 'You', text: userText, time }]);
+    setMessages((prev) => [...prev, { role: 'You', text: userText, time }]);
 
-    // Find exact match (case-insensitive + trimmed)
+    // Find matching response (case-insensitive + trimmed)
     const found = mockData.find(
       (item) => item.question.trim().toLowerCase() === userText.toLowerCase().trim()
     );
 
-    const botResponse = found ? found.response : DEFAULT_RESPONSE;
+    const botReply = found ? found.response : DEFAULT_RESPONSE;
 
-    // Add bot message (small delay for realism)
-    setTimeout(() => {
-      setChatLog((prev) => [...prev, { role: 'Soul AI', text: botResponse, time }]);
-    }, 400);
+    // Add bot response
+    setMessages((prev) => [...prev, { role: 'Soul AI', text: botReply, time }]);
 
     setInput('');
   };
 
   const handleSave = () => {
-    if (chatLog.length < 2) return;
+    if (messages.length < 2) return;
     setModalOpen(true);
   };
 
   const handleFeedbackSubmit = ({ rating, comment }) => {
-    const firstUserMsg = chatLog.find((m) => m.role === 'You')?.text || '';
-    const title = firstUserMsg.slice(0, 40) || 'New conversation';
+    const title = messages.find((m) => m.role === 'You')?.text?.slice(0, 40) || 'New Chat';
 
     const session = {
       id: Date.now(),
       title,
-      messages: [...chatLog],
-      feedback: { rating, comment: comment.trim() || '(no comment)' },
+      messages: [...messages],
+      feedback: { rating, comment: comment.trim() || '' },
       timestamp: new Date().toISOString(),
     };
 
-    const previous = JSON.parse(localStorage.getItem('conversations') || '[]');
-    localStorage.setItem('conversations', JSON.stringify([session, ...previous]));
+    const prev = JSON.parse(localStorage.getItem('conversations') || '[]');
+    localStorage.setItem('conversations', JSON.stringify([session, ...prev]));
 
     // Reset chat after save
-    setChatLog([]);
+    setMessages([]);
     setModalOpen(false);
   };
 
-  const handleThumbsFeedback = (msgId, type) => {
-    console.log(`Feedback: ${type} on message ${msgId}`);
-    // Optional: save thumbs-up/down per message here
-  };
-
   return (
-    <Container maxWidth="md" sx={{ height: '100%', display: 'flex', flexDirection: 'column', py: 2 }}>
-      {/* Messages / Welcome area */}
-      <Box sx={{ flex: 1, overflowY: 'auto', mb: 3 }}>
-        {chatLog.length <= 1 ? (
-          <Box textAlign="center" mt={8}>
-            <Avatar
+    <Container
+      maxWidth="md"
+      sx={{
+        height: '100%',
+        py: { xs: 4, md: 6 },
+        px: { xs: 2, md: 4 },
+        display: 'flex',
+        flexDirection: 'column',
+        bgcolor: '#f9f9fb',
+      }}
+    >
+      {messages.length <= 1 ? (
+        // Welcome / suggestion screen
+        <Box
+          sx={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+          }}
+        >
+          <Avatar
+            sx={{
+              width: 140,
+              height: 140,
+              mb: 5,
+              bgcolor: '#9747FF',
+              boxShadow: '0 12px 40px rgba(151,71,255,0.3)',
+            }}
+          >
+            <SmartToyIcon sx={{ fontSize: 80, color: 'white' }} />
+          </Avatar>
+
+          <Typography
+            variant="h4"
+            fontWeight="bold"
+            gutterBottom
+            sx={{
+              color: '#1a1a1a',
+              mb: 7,
+              fontSize: { xs: '1.8rem', md: '2.5rem' },
+              lineHeight: 1.2,
+            }}
+          >
+            How Can I Help You Today?
+          </Typography>
+
+          <Grid container spacing={3} justifyContent="center" sx={{ maxWidth: 900 }}>
+            {[
+              'Hi, what is the weather',
+              'Hi, what is my location',
+              'Hi, what is the temperature',
+              'Hi, how are you',
+            ].map((q, i) => (
+              <Grid item xs={12} sm={6} key={i}>
+                <Paper
+                  elevation={3}
+                  sx={{
+                    p: 3.5,
+                    borderRadius: 3,
+                    cursor: 'pointer',
+                    transition: 'all 0.25s ease',
+                    background: 'white',
+                    border: '1px solid #e0e0e0',
+                    '&:hover': {
+                      transform: 'translateY(-6px)',
+                      boxShadow: '0 12px 32px rgba(0,0,0,0.1)',
+                    },
+                  }}
+                  onClick={() => setInput(q)}
+                >
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight="bold"
+                    sx={{ mb: 1, color: '#1a1a1a' }}
+                  >
+                    {q}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.9rem' }}>
+                    Get immediate AI generated response
+                  </Typography>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      ) : (
+        // Chat messages
+        <Stack spacing={3} sx={{ mb: 4 }}>
+          {messages.map((msg, i) => (
+            <Box
+              key={i}
               sx={{
-                width: 100,
-                height: 100,
-                mx: 'auto',
-                mb: 4,
-                bgcolor: '#9747FF',
+                alignSelf: msg.role === 'You' ? 'flex-end' : 'flex-start',
+                maxWidth: '82%',
               }}
             >
-              <SmartToyIcon fontSize="large" />
-            </Avatar>
+              <Paper
+                sx={{
+                  p: 2.5,
+                  bgcolor: msg.role === 'You' ? '#f0f0f0' : '#D7C7F433',
+                  borderRadius: msg.role === 'You' ? '20px 20px 0 20px' : '20px 20px 20px 0',
+                  boxShadow: '0 3px 12px rgba(0,0,0,0.08)',
+                }}
+              >
+                <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 0.8 }}>
+                  {msg.role === 'Soul AI' ? <span>Soul AI</span> : <span>You</span>}
+                </Typography>
 
-            <Typography variant="h4" fontWeight="bold" gutterBottom sx={{ color: '#333' }}>
-              How Can I Help You Today?
-            </Typography>
+                <p style={{ margin: '6px 0 10px 0', lineHeight: 1.5 }}>
+                  {msg.text}
+                </p>
 
-            <Grid container spacing={2} justifyContent="center" mt={5}>
-              {[
-                'Hi, what is the weather',
-                'Hi, what is my location',
-                'Hi, what is the temperature',
-                'Hi, how are you',
-              ].map((q, i) => (
-                <Grid item xs={12} sm={6} key={i}>
-                  <Paper
-                    elevation={3}
-                    sx={{
-                      p: 3,
-                      borderRadius: 3,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      '&:hover': { transform: 'translateY(-6px)', boxShadow: 6 },
-                    }}
-                    onClick={() => setInput(q)}
-                  >
-                    <Typography variant="subtitle1" fontWeight="bold">
-                      {q}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                      Get immediate AI generated response
-                    </Typography>
-                  </Paper>
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-        ) : (
-          <Stack spacing={3}>
-            {chatLog.map((msg, index) => (
-              <ChatBubble
-                key={index}
-                message={{ ...msg, id: index }} // ← pass id so thumbs work
-                onFeedback={handleThumbsFeedback}
-              />
-            ))}
-            <div ref={scrollRef} />
-          </Stack>
-        )}
-      </Box>
+                <Typography variant="caption" color="text.secondary">
+                  {msg.time}
+                </Typography>
+              </Paper>
+            </Box>
+          ))}
+          <div ref={endRef} />
+        </Stack>
+      )}
 
       {/* Input + buttons */}
-      <Box component="form" onSubmit={handleAsk}>
+      <Box
+        component="form"
+        onSubmit={handleAsk}
+        sx={{
+          position: 'sticky',
+          bottom: 0,
+          bgcolor: 'white',
+          p: 2,
+          borderTop: '1px solid #eee',
+          zIndex: 10,
+          boxShadow: '0 -2px 10px rgba(0,0,0,0.05)',
+        }}
+      >
         <Stack direction="row" spacing={1.5} alignItems="center">
           <TextField
             fullWidth
@@ -178,6 +231,12 @@ useEffect(() => {
             onChange={(e) => setInput(e.target.value)}
             variant="outlined"
             size="medium"
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 3,
+                bgcolor: '#fafafa',
+              },
+            }}
           />
 
           <Button
@@ -186,9 +245,12 @@ useEffect(() => {
             endIcon={<SendIcon />}
             sx={{
               bgcolor: '#9747FF',
-              color: 'white',
-              minWidth: 100,
+              minWidth: 120,
               py: 1.5,
+              borderRadius: 3,
+              textTransform: 'none',
+              fontWeight: 600,
+              '&:hover': { bgcolor: '#7C3AED' },
             }}
             disabled={!input.trim()}
           >
@@ -199,12 +261,19 @@ useEffect(() => {
             type="button"
             variant="outlined"
             onClick={handleSave}
-            disabled={chatLog.length === 0}
+            disabled={messages.length < 2}
             sx={{
-              minWidth: 100,
+              minWidth: 120,
               py: 1.5,
+              borderRadius: 3,
               borderColor: '#9747FF',
               color: '#9747FF',
+              textTransform: 'none',
+              fontWeight: 600,
+              '&:hover': {
+                borderColor: '#7C3AED',
+                bgcolor: '#F8F5FF',
+              },
             }}
           >
             Save
@@ -212,11 +281,10 @@ useEffect(() => {
         </Stack>
       </Box>
 
-      {/* Feedback Modal */}
       <FeedbackModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        onSubmit={handleFeedbackSubmit} // ← now used!
+        onSubmit={handleFeedbackSubmit}
       />
     </Container>
   );

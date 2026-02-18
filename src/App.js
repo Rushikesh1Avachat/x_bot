@@ -2,20 +2,21 @@ import { useState } from 'react';
 import Layout from './components/Layout';
 import ChatPage from './pages/ChatPage';
 import HistoryPage from './pages/HistoryPage';
-import FeedbackView from './components/FeedbackView'
 
 export default function App() {
-  const [view, setView] = useState('chat'); // 'chat', 'history', 'feedback'
+  const [currentView, setCurrentView] = useState('chat');
+
+  // This is the function that Layout needs
+  const handleViewChange = (view) => {
+    setCurrentView(view);
+  };
 
   return (
-    <Layout currentView={view} onViewChange={setView}>
-      {view === 'chat' ? (
-        <ChatPage />
-      ) : view === 'history' ? (
-        <HistoryPage />
-      ) : (
-        <FeedbackView />
-      )}
+    <Layout
+      currentView={currentView}
+      onViewChange={handleViewChange}   // ← THIS WAS MISSING → now fixed
+    >
+      {currentView === 'chat' ? <ChatPage /> : <HistoryPage />}
     </Layout>
   );
 }

@@ -13,11 +13,11 @@ import {
 import SendIcon from '@mui/icons-material/Send';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import mockData from '../api/data.json';
-import FeedbackModal from '../components/FeedbackModal';
+import FeedbackModal from './FeedbackModal';
 
 const DEFAULT_RESPONSE = "Sorry, Did not understand your query!";
 
-export default function ChatPage() {
+export default function ChatPageBot() {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);

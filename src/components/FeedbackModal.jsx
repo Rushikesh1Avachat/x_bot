@@ -9,7 +9,6 @@ import {
   Rating,
   Box,
 } from '@mui/material';
-import LightbulbOutlinedIcon from '@mui/icons-material/LightbulbOutlined';
 
 export default function FeedbackModal({ open, onClose, onSubmit }) {
   const [rating, setRating] = useState(0);
@@ -24,13 +23,9 @@ export default function FeedbackModal({ open, onClose, onSubmit }) {
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-        <LightbulbOutlinedIcon color="primary" />
-        Provide Additional Feedback
-      </DialogTitle>
-
+      <DialogTitle>Provide Feedback</DialogTitle>
       <DialogContent>
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
           <Rating
             value={rating}
             onChange={(_, v) => setRating(v)}
@@ -40,22 +35,15 @@ export default function FeedbackModal({ open, onClose, onSubmit }) {
             multiline
             rows={4}
             fullWidth
-            placeholder="Write your feedback here..."
+            placeholder="Your comments..."
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            variant="outlined"
           />
         </Box>
       </DialogContent>
-
-      <DialogActions sx={{ px: 3, pb: 3 }}>
+      <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button
-          variant="contained"
-          onClick={handleSubmit}
-          disabled={rating === 0}
-          sx={{ bgcolor: '#9747FF', color: 'white' }}
-        >
+        <Button variant="contained" onClick={handleSubmit} disabled={rating === 0}>
           Submit
         </Button>
       </DialogActions>

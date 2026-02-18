@@ -43,10 +43,10 @@ export default function HistoryPage() {
         Today's Chats
       </Typography>
 
-      {conversations.map((conv, idx) => (
+      {conversations.map((conv) => (
         <Paper
           key={conv.id}
-          elevation={2}
+          elevation={3}
           sx={{
             mb: 2,
             borderRadius: 3,
