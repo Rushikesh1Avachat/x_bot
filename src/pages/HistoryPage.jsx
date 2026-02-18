@@ -1,53 +1,117 @@
-import React, { useEffect, useState } from "react";
-import { Container, Typography, Paper, Stack, Box, Rating } from "@mui/material";
+import { useState, useEffect } from 'react';
+import {
+  Box,
+  Typography,
+  Paper,
+  List,
+  ListItem,
 
-const HistoryPage = () => {
-  const [history, setHistory] = useState([]);
+  Avatar,
+  Divider,
+  Rating,
+} from '@mui/material';
+import PersonIcon from '@mui/icons-material/Person';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
+
+export default function HistoryPage() {
+  const [conversations, setConversations] = useState([]);
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("conversations")) || [];
-    setHistory(saved);
+    const saved = localStorage.getItem('conversations');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      parsed.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      setConversations(parsed);
+    }
   }, []);
 
+  if (conversations.length === 0) {
+    return (
+      <Box sx={{ textAlign: 'center', py: 10 }}>
+        <SmartToyIcon sx={{ fontSize: 80, color: 'action.disabled', mb: 2 }} />
+        <Typography variant="h6" color="text.secondary">
+          No past conversations yet
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Typography variant="h4" textAlign="center" sx={{ mb: 4, fontWeight: 'bold', fontFamily: 'Ubuntu' }}>
+    <Box sx={{ maxWidth: 900, mx: 'auto', px: 2 }}>
+      <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ mb: 3 }}>
         Conversation History
       </Typography>
-      
-      {history.length === 0 ? (
-        <Typography textAlign="center">No saved conversations yet.</Typography>
-      ) : (
-        <Stack spacing={4}>
-          {history.map((conv) => (
-            <Paper key={conv.id} sx={{ p: 3, borderRadius: '20px', background: 'linear-gradient(90deg, #BFABE2 0%, #DADAFA 100%)' }}>
-              {conv.messages.map((msg, i) => (
-                <Box key={i} sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2" fontWeight="bold">
-                    {msg.role === "Soul AI" ? <span>Soul AI</span> : <span>You</span>}
-                  </Typography>
-                  <p style={{ margin: '4px 0' }}>{msg.text}</p>
-                  <Typography variant="caption" color="text.secondary">{msg.time}</Typography>
+
+      <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 2 }}>
+        Today's Chats
+      </Typography>
+
+      <Paper sx={{ bgcolor: '#F8F5FF', borderRadius: 3 }}>
+        <List disablePadding>
+          {conversations.map((conv, idx) => (
+            <Box key={conv.id}>
+              {idx > 0 && <Divider />}
+              <ListItem sx={{ py: 2.5, px: 3, flexDirection: 'column', alignItems: 'flex-start' }}>
+                {/* Preview messages */}
+                <Box sx={{ width: '100%', mb: 1.5 }}>
+                  {conv.messages.slice(-2).map((msg, i) => (
+                    <Box
+                      key={i}
+                      sx={{
+                        mb: 1,
+                        p: 1.8,
+                        borderRadius: msg.role === 'You' ? '16px 16px 0 16px' : '16px 16px 16px 0',
+                        bgcolor: msg.role === 'You' ? '#E0F7FA' : '#EDE7FF',
+                        maxWidth: '85%',
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                        <Avatar sx={{ width: 32, height: 32, bgcolor: msg.role === 'You' ? 'secondary.main' : 'primary.main' }}>
+                          {msg.role === 'You' ? <PersonIcon fontSize="small" /> : <SmartToyIcon fontSize="small" />}
+                        </Avatar>
+                        <Typography variant="subtitle2">
+                          {msg.role}
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2">
+                        {msg.text?.slice(0, 70)}{msg.text?.length > 70 ? '...' : ''}
+                      </Typography>
+                    </Box>
+                  ))}
                 </Box>
-              ))}
-              {conv.rating > 0 && (
-                <Box sx={{ mt: 2, pt: 1, borderTop: '1px solid rgba(0,0,0,0.1)' }}>
-                  <Rating value={conv.rating} readOnly size="small" />
-                  {conv.feedback && <Typography variant="body2">Feedback: {conv.feedback}</Typography>}
+
+                {/* Summary */}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight={600}>
+                      {conv.title}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {new Date(conv.timestamp).toLocaleString([], { hour: '2-digit', minute: '2-digit' })}
+                      {' • '}
+                      {conv.messages.length} messages
+                    </Typography>
+                  </Box>
+
+                  {conv.feedback && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Rating value={conv.feedback.rating} readOnly size="small" />
+                      {conv.feedback.comment && (
+                        <Typography variant="caption" color="text.secondary">
+                          "{conv.feedback.comment.slice(0, 35)}..."
+                        </Typography>
+                      )}
+                    </Box>
+                  )}
                 </Box>
-              )}
-            </Paper>
+              </ListItem>
+            </Box>
           ))}
-        </Stack>
-      )}
-    </Container>
+        </List>
+      </Paper>
+    </Box>
   );
-};
-
-export default HistoryPage;
-
-
-
+}
 
 
 

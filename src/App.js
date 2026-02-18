@@ -1,62 +1,44 @@
-import { Routes, Route, Link } from "react-router-dom";
-import { Container, Typography, Box, Button, Stack } from "@mui/material";
-import ChatPage from "./pages/ChatPage";
-import HistoryPage from "./pages/HistoryPage";
+import { useState } from 'react';
+import { Box, AppBar, Toolbar, Typography, Button } from '@mui/material';
+import ChatPage from './pages/ChatPage';
+import HistoryPage from './pages/HistoryPage';
 
-function App() {
+export default function App() {
+  const [view, setView] = useState('chat');
+
+  const handleNewChat = () => {
+    setView('chat');
+  };
+
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#fff' }}>
-      {/* Requirement 8: Use <header> tag and correct title */}
-      <header>
-        <Box 
-          sx={{ 
-            p: 2, 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'space-between',
-            borderBottom: '1px solid #eee' 
-          }}
-        >
-          <Typography 
-            variant="h5" 
-            sx={{ color: '#9747FF', fontWeight: 'bold', fontFamily: 'Ubuntu' }}
-          >
+    <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <AppBar position="static" sx={{ bgcolor: '#9747FF' }}>
+        <Toolbar>
+          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
             Bot AI
           </Typography>
 
-          <Stack direction="row" spacing={2}>
-            {/* Requirement 6 & 7: Buttons must act as links with specific hrefs */}
-            <Button 
-              component={Link} 
-              to="/" 
-              variant="text" 
-              sx={{ color: '#000', textTransform: 'none' }}
-            >
-              New Chat
-            </Button>
-            <Button 
-              component={Link} 
-              to="/history" 
-              variant="text" 
-              sx={{ color: '#000', textTransform: 'none' }}
-            >
-              Past Conversations
-            </Button>
-          </Stack>
-        </Box>
-      </header>
+          <Button 
+            color="inherit" 
+            onClick={handleNewChat}
+            sx={{ mr: 2, textTransform: 'none' }}
+          >
+            New Chat
+          </Button>
 
-      <Container maxWidth="md" sx={{ py: 3 }}>
-        <Routes>
-          {/* Requirement 1-3, 9-10: Handled in ChatPage */}
-          <Route path="/" element={<ChatPage />} />
-          
-          {/* Requirement 4-5: Handled in HistoryPage via /history route */}
-          <Route path="/history" element={<HistoryPage />} />
-        </Routes>
-      </Container>
+          <Button 
+            color="inherit" 
+            onClick={() => setView('history')}
+            sx={{ textTransform: 'none' }}
+          >
+            Past Conversations
+          </Button>
+        </Toolbar>
+      </AppBar>
+
+      <Box sx={{ flex: 1, overflowY: 'auto', bgcolor: '#F9F9FB' }}>
+        {view === 'chat' ? <ChatPage /> : <HistoryPage />}
+      </Box>
     </Box>
   );
 }
-
-export default App;

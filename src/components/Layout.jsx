@@ -1,46 +1,83 @@
-import React from "react";
-import { AppBar, Toolbar, Typography, Container, Button, Box } from "@mui/material";
-import { Link } from "react-router-dom";
+// src/components/Layout.jsx
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Container from '@mui/material/Container';
+import Box from '@mui/material/Box';
 
-const Layout = ({ children }) => {
+export default function Layout({ children, currentView, onViewChange }) {
   return (
-    <>
-      {/* Requirement 8: Use <header> semantic tag for the test runner */}
-      <header>
-        <AppBar position="static" sx={{ bgcolor: '#D7C7F4', color: '#000' }}>
-          <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            {/* Requirement 8: Correct Title is "Bot AI" (not Soul AI here) */}
-            <Typography variant="h6" sx={{ fontWeight: 'bold', fontFamily: 'Ubuntu' }}>
-              Bot AI
-            </Typography>
+    <Box sx={{ minHeight: '100vh', bgcolor: '#F9F9FB' }}> {/* matches your light background */}
+      <AppBar 
+        position="static" 
+        elevation={0}
+        sx={{ 
+          bgcolor: '#9747FF', // your primary purple
+          boxShadow: '0 2px 10px rgba(151,71,255,0.2)',
+        }}
+      >
+        <Toolbar sx={{ px: { xs: 2, sm: 4 } }}>
+          <Typography 
+            variant="h6" 
+            component="div" 
+            sx={{ 
+              flexGrow: 1, 
+              fontWeight: 600,
+              fontFamily: '"Ubuntu", sans-serif',
+            }}
+          >
+            Bot AI
+          </Typography>
 
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              {/* Requirement 6 & 7: Navigation links with correct hrefs */}
-              <Button 
-                component={Link} 
-                to="/" 
-                sx={{ color: 'inherit', textTransform: 'none' }}
-              >
-                New Chat
-              </Button>
-              
-              <Button 
-                component={Link} 
-                to="/history" 
-                sx={{ color: 'inherit', textTransform: 'none' }}
-              >
-                Past Conversations
-              </Button>
-            </Box>
-          </Toolbar>
-        </AppBar>
-      </header>
+          <Button
+            color="inherit"
+            variant={currentView === 'chat' ? 'outlined' : 'text'}
+            onClick={() => onViewChange('chat')}
+            sx={{ 
+              mr: 2,
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 600,
+              borderColor: currentView === 'chat' ? 'white' : 'transparent',
+              '&:hover': {
+                borderColor: 'white',
+                bgcolor: 'rgba(255,255,255,0.1)',
+              }
+            }}
+          >
+            New Chat
+          </Button>
 
-      <Container sx={{ mt: 4 }}>
+          <Button
+            color="inherit"
+            variant={currentView === 'history' ? 'outlined' : 'text'}
+            onClick={() => onViewChange('history')}
+            sx={{ 
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 600,
+              borderColor: currentView === 'history' ? 'white' : 'transparent',
+              '&:hover': {
+                borderColor: 'white',
+                bgcolor: 'rgba(255,255,255,0.1)',
+              }
+            }}
+          >
+            Past Conversations
+          </Button>
+        </Toolbar>
+      </AppBar>
+
+      <Container 
+        maxWidth="md" 
+        sx={{ 
+          py: { xs: 2, sm: 4 },
+          px: { xs: 1.5, sm: 3 },
+        }}
+      >
         {children}
       </Container>
-    </>
+    </Box>
   );
-};
-
-export default Layout;
+}
