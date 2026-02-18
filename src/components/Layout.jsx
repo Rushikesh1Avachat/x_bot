@@ -1,14 +1,37 @@
-import { AppBar, Toolbar, Typography, Button, Box, IconButton, Drawer } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
 import { useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import {
+  Box,
+  Drawer,
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  IconButton,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
+
+const drawerWidth = 280;
 
 export default function Layout({ children }) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
 
-  const drawer = (
-    <Box sx={{ width: 280, p: 3, bgcolor: '#F8F5FF', height: '100%' }}>
-      <Typography variant="h5" fontWeight="bold" sx={{ mb: 5, color: '#9747FF' }}>
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
+
+  const sidebarContent = (
+    <Box sx={{ width: drawerWidth, height: '100%', p: 3, bgcolor: '#F8F5FF' }}>
+      <Typography
+        variant="h5"
+        fontWeight="bold"
+        sx={{ mb: 6, color: '#9747FF', textAlign: 'center' }}
+      >
         Bot AI
       </Typography>
 
@@ -16,16 +39,21 @@ export default function Layout({ children }) {
         fullWidth
         component={RouterLink}
         to="/"
+        variant={location.pathname === '/' ? 'contained' : 'outlined'}
         sx={{
           mb: 2,
-          py: 1.5,
-          justifyContent: 'flex-start',
+          py: 1.8,
           textTransform: 'none',
           fontWeight: 600,
-          color: '#9747FF',
+          borderRadius: 3,
           borderColor: '#9747FF',
-          borderRadius: 2,
-          '&:hover': { bgcolor: '#F0E8FF' },
+          color: location.pathname === '/' ? 'white' : '#9747FF',
+          bgcolor: location.pathname === '/' ? '#9747FF' : 'transparent',
+          borderWidth: 2,
+          '&:hover': {
+            bgcolor: location.pathname === '/' ? '#7C3AED' : '#F0E8FF',
+            borderColor: '#7C3AED',
+          },
         }}
       >
         New Chat
@@ -35,15 +63,20 @@ export default function Layout({ children }) {
         fullWidth
         component={RouterLink}
         to="/history"
+        variant={location.pathname === '/history' ? 'contained' : 'outlined'}
         sx={{
-          py: 1.5,
-          justifyContent: 'flex-start',
+          py: 1.8,
           textTransform: 'none',
           fontWeight: 600,
-          color: '#9747FF',
+          borderRadius: 3,
           borderColor: '#9747FF',
-          borderRadius: 2,
-          '&:hover': { bgcolor: '#F0E8FF' },
+          color: location.pathname === '/history' ? 'white' : '#9747FF',
+          bgcolor: location.pathname === '/history' ? '#9747FF' : 'transparent',
+          borderWidth: 2,
+          '&:hover': {
+            bgcolor: location.pathname === '/history' ? '#7C3AED' : '#F0E8FF',
+            borderColor: '#7C3AED',
+          },
         }}
       >
         Past Conversations
@@ -52,43 +85,54 @@ export default function Layout({ children }) {
   );
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {/* Header */}
-      <AppBar position="static" sx={{ bgcolor: '#9747FF' }}>
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            edge="start"
-            onClick={() => setMobileOpen(true)}
-            sx={{ mr: 2, display: { sm: 'none' } }}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            Bot AI
-          </Typography>
-        </Toolbar>
-      </AppBar>
-
+    <Box sx={{ display: 'flex', height: '100vh' }}>
       {/* Desktop sidebar */}
-      <Box sx={{ display: { xs: 'none', sm: 'block' }, width: 280, flexShrink: 0 }}>
-        {drawer}
-      </Box>
+      {!isMobile && (
+        <Box sx={{ width: drawerWidth, flexShrink: 0, borderRight: '1px solid #E0D4FF' }}>
+          {sidebarContent}
+        </Box>
+      )}
 
       {/* Mobile drawer */}
-      <Drawer
-        variant="temporary"
-        open={mobileOpen}
-        onClose={() => setMobileOpen(false)}
-        ModalProps={{ keepMounted: true }}
-        sx={{ display: { xs: 'block', sm: 'none' }, '& .MuiDrawer-paper': { width: 280 } }}
-      >
-        {drawer}
-      </Drawer>
+      {isMobile && (
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={handleDrawerToggle}
+          sx={{ '& .MuiDrawer-paper': { width: drawerWidth, bgcolor: '#F8F5FF' } }}
+        >
+          {sidebarContent}
+        </Drawer>
+      )}
 
-      {/* Page content */}
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-        {children}
+      {/* Main content */}
+      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+        {/* Mobile top bar */}
+        {isMobile && (
+          <AppBar position="fixed" sx={{ bgcolor: '#9747FF' }}>
+            <Toolbar>
+              <IconButton color="inherit" edge="start" onClick={handleDrawerToggle} sx={{ mr: 2 }}>
+                <MenuIcon />
+              </IconButton>
+              <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                Bot AI
+              </Typography>
+            </Toolbar>
+          </AppBar>
+        )}
+
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            p: { xs: 2, md: 4 },
+            mt: isMobile ? '64px' : 0,
+            overflowY: 'auto',
+            bgcolor: '#F9F9FB',
+          }}
+        >
+          {children}
+        </Box>
       </Box>
     </Box>
   );
