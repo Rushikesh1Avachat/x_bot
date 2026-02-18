@@ -1,80 +1,46 @@
-import { Box, Typography, IconButton, Rating } from "@mui/material";
+import { Box, Typography, IconButton } from "@mui/material";
 import { FaThumbsUp, FaThumbsDown } from "react-icons/fa";
 import { useState } from "react";
 
-const ChatBubble = ({ message, onFeedback = null }) => {
+const ChatBubble = ({ message, onFeedback }) => {
   const [hover, setHover] = useState(false);
   const isUser = message.sender === "user";
 
   return (
     <Box
-      sx={{
-        display: "flex",
-        justifyContent: isUser ? "flex-end" : "flex-start",
-        mb: 2,
-      }}
+      display="flex"
+      justifyContent={isUser ? "flex-end" : "flex-start"}
+      mb={2}
     >
       <Box
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
         sx={{
-          maxWidth: "70%",
           p: 2,
           borderRadius: 3,
-          bgcolor: isUser ? "#6366f1" : "#ede9fe",
-          color: isUser ? "#fff" : "#111",
+          maxWidth: "70%",
+          bgcolor: isUser ? "#6366f1" : "#f1f1f1",
+          color: isUser ? "#fff" : "#000",
           position: "relative",
         }}
       >
         {!isUser && (
-          <Typography fontWeight="bold" mb={0.5}>
+          <span style={{ fontWeight: "bold" }}>
             Soul AI
-          </Typography>
+          </span>
         )}
 
-        <Typography>{message.text}</Typography>
+        <p>{message.text}</p>
 
-        {/* Like / Dislike */}
-        {!isUser && hover && onFeedback && (
-          <Box
-            sx={{
-              position: "absolute",
-              top: 8,
-              right: 8,
-              display: "flex",
-              gap: 1,
-            }}
-          >
-            <IconButton
-              size="small"
-              onClick={() => onFeedback("like")}
-              color={message.feedback === "like" ? "primary" : "default"}
-            >
-              <FaThumbsUp size={14} />
+        {!isUser && hover && (
+          <Box position="absolute" top={5} right={5}>
+            <IconButton onClick={() => onFeedback("like")}>
+              <FaThumbsUp />
             </IconButton>
-
-            <IconButton
-              size="small"
-              onClick={() => onFeedback("dislike")}
-              color={message.feedback === "dislike" ? "error" : "default"}
-            >
-              <FaThumbsDown size={14} />
+            <IconButton onClick={() => onFeedback("dislike")}>
+              <FaThumbsDown />
             </IconButton>
           </Box>
-        )}
-
-        {/* Rating */}
-        {message.rating > 0 && (
-          <Box mt={1}>
-            <Rating value={message.rating} readOnly size="small" />
-          </Box>
-        )}
-
-        {/* Subjective Feedback */}
-        {message.subjective && (
-          <Typography variant="caption" display="block" mt={1}>
-            Feedback: {message.subjective}
-          </Typography>
         )}
       </Box>
     </Box>
@@ -82,6 +48,8 @@ const ChatBubble = ({ message, onFeedback = null }) => {
 };
 
 export default ChatBubble;
+
+
 
 
 

@@ -1,87 +1,72 @@
-import {
-  Box,
-  Typography,
-  Paper,
-  Stack,
-  Divider,
-} from "@mui/material";
-import ChatBubble from "../components/ChatBubble";
+import { useEffect, useState } from "react";
+import { Box, Typography, Paper, Rating } from "@mui/material";
 
 const HistoryPage = () => {
-  const conversations =
-    JSON.parse(localStorage.getItem("conversations")) || [];
+  const [conversations, setConversations] = useState([]);
+
+  useEffect(() => {
+    const stored =
+      JSON.parse(localStorage.getItem("conversations")) || [];
+
+    setConversations(Array.isArray(stored) ? stored : []);
+  }, []);
 
   return (
-    <Box p={3}>
-      <Typography variant="h4" gutterBottom fontWeight={600}>
-        Conversation History
+    <Box>
+      <Typography variant="h5" mb={3}>
+        Past Conversations
       </Typography>
 
       {conversations.length === 0 && (
-        <Typography>No saved conversations.</Typography>
+        <Typography>No conversations found.</Typography>
       )}
 
-      {conversations.map((conv) => (
-        <Paper
-          key={conv.id}
-          sx={{
-            mb: 4,
-            p: 3,
-            bgcolor: "#ede9fe",
-            borderRadius: 3,
-          }}
-        >
-          <Typography
-            variant="caption"
-            display="block"
-            mb={2}
-            sx={{ opacity: 0.7 }}
-          >
-            {conv.createdAt}
-          </Typography>
+      {conversations.map((conv, i) => {
+        // ✅ Handle both OLD and NEW formats safely
+        const messages = Array.isArray(conv)
+          ? conv
+          : conv.messages || [];
 
-          <Stack spacing={2}>
-            {conv.messages.map((msg, index) => (
-              <Box key={index}>
-                <ChatBubble message={msg} />
+        const rating = conv.rating || 0;
+        const feedback = conv.feedbackText || "";
 
-                {/* SHOW ONLY FOR BOT */}
-                {msg.sender === "bot" && (
-                  <Box mt={1} ml={1}>
-                    <Typography variant="caption" display="block">
-                      🕒 {msg.time}
-                    </Typography>
-
-                    {msg.feedback && (
-                      <Typography variant="caption" display="block">
-                        Feedback: {msg.feedback}
-                      </Typography>
-                    )}
-
-                    {msg.rating > 0 && (
-                      <Typography variant="caption" display="block">
-                        Rating: {"⭐".repeat(msg.rating)} ({msg.rating}/5)
-                      </Typography>
-                    )}
-
-                    {msg.subjective && (
-                      <Typography variant="caption" display="block">
-                        Comment: {msg.subjective}
-                      </Typography>
-                    )}
-                  </Box>
-                )}
-
-                <Divider sx={{ mt: 2 }} />
+        return (
+          <Paper key={i} sx={{ p: 2, mb: 2 }}>
+            {messages.map((msg, j) => (
+              <Box key={j} mb={1}>
+                <strong>
+                  {msg.sender === "user"
+                    ? "You"
+                    : "Soul AI"}
+                </strong>
+                <p>{msg.text}</p>
               </Box>
             ))}
-          </Stack>
-        </Paper>
-      ))}
+
+            <Box mt={2}>
+              <Typography variant="subtitle2">
+                Rating:
+              </Typography>
+              <Rating value={rating} readOnly />
+            </Box>
+
+            {feedback && (
+              <Typography mt={1}>
+                Feedback: {feedback}
+              </Typography>
+            )}
+          </Paper>
+        );
+      })}
     </Box>
   );
 };
 
 export default HistoryPage;
+
+
+
+
+
 
 

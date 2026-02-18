@@ -6,52 +6,52 @@ import {
   Button,
   TextField,
   Rating,
-  Box,
+  Typography,
 } from "@mui/material";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 const FeedbackModal = ({ open, onClose, onSubmit }) => {
   const [rating, setRating] = useState(0);
-  const [subjective, setSubjective] = useState("");
-
-  useEffect(() => {
-    if (!open) {
-      setRating(0);
-      setSubjective("");
-    }
-  }, [open]);
+  const [feedback, setFeedback] = useState("");
 
   const handleSubmit = () => {
-    onSubmit({ rating, subjective });
+    onSubmit({ rating, feedback });
+    setRating(0);
+    setFeedback("");
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Provide Additional Feedback</DialogTitle>
+    <Dialog open={open} onClose={onClose} fullWidth>
+      <DialogTitle>Give Feedback</DialogTitle>
 
       <DialogContent>
-        <Box mb={2}>
-          <Rating
-            value={rating}
-            onChange={(e, newValue) => setRating(newValue)}
-          />
-        </Box>
+        <Typography mb={2}>
+          Rate your conversation
+        </Typography>
+
+        <Rating
+          value={rating}
+          onChange={(e, newValue) => setRating(newValue)}
+        />
 
         <TextField
           fullWidth
+          label="Subjective Feedback"
           multiline
-          rows={4}
-          placeholder="Write your feedback..."
-          value={subjective}
-          onChange={(e) => setSubjective(e.target.value)}
+          rows={3}
+          sx={{ mt: 2 }}
+          value={feedback}
+          onChange={(e) => setFeedback(e.target.value)}
         />
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={onClose}>
+          Cancel
+        </Button>
+
         <Button
           variant="contained"
-          sx={{ bgcolor: "#D7C7F4", color: "#000" }}
           onClick={handleSubmit}
         >
           Submit
@@ -62,6 +62,8 @@ const FeedbackModal = ({ open, onClose, onSubmit }) => {
 };
 
 export default FeedbackModal;
+
+
 
 
 
