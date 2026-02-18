@@ -1,11 +1,10 @@
 import { Box, Button, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
-import { Link, Route, Routes, useNavigate } from "react-router-dom";
+import { Link, Route, Routes } from "react-router-dom";
 import HistoryPage from "./pages/HistoryPage";
 import ChatPage from "./pages/ChatPage";
 
 const App = () => {
-  const navigate = useNavigate();
   const [history, setHistory] = useState(() => {
     const saved = localStorage.getItem('chat_history');
     return saved ? JSON.parse(saved) : [];
