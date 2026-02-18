@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   TextField,
@@ -10,80 +10,61 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Grid,
+  Paper,
 } from "@mui/material";
-import { FaHistory, FaPlus } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import LightbulbOutlinedIcon from '@mui/icons-material/LightbulbOutlined';
 import ChatBubble from "../components/ChatBubble";
+import dataJSON from "../api/data.json";
 
 const ChatPage = () => {
-  const [data, setData] = useState([]);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-
+  const [openModal, setOpenModal] = useState(false);
   const [rating, setRating] = useState(0);
   const [feedbackText, setFeedbackText] = useState("");
-  const [openModal, setOpenModal] = useState(false);
-
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    axios.get("/api/data.json").then((res) => {
-      setData(res.data);
-    });
-  }, []);
 
   const getBotResponse = (question) => {
-    const found = data.find(
-      (item) =>
-        item.question.toLowerCase().trim() ===
-        question.toLowerCase().trim()
+    const found = dataJSON.find(
+      (item) => item.question.toLowerCase().trim() === question.toLowerCase().trim()
     );
-
-    return found
-      ? found.response
-      : "Sorry, Did not understand your query!";
+    return found ? found.response : "Sorry, Did not understand your query!";
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    const userMessage = { sender: "user", text: input };
-    const botMessage = {
-      sender: "bot",
-      text: getBotResponse(input),
-    };
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    // Using Date.now() as a simple unique ID for feedback tracking
+    const userMessage = { id: Date.now(), role: "You", text: input, time };
+    const botMessage = { id: Date.now() + 1, role: "Soul AI", text: getBotResponse(input), time };
 
     setMessages((prev) => [...prev, userMessage, botMessage]);
-    setInput("");
+    setInput(""); 
   };
 
-  // STEP 1: Open Modal instead of saving directly
-  const handleSave = () => {
-    if (messages.length === 0) return;
-    setOpenModal(true);
+  // ADDED: Simple handler to satisfy the prop requirement
+  const handleFeedback = (id, type) => {
+    console.log(`Feedback for message ${id}: ${type}`);
+    // You can extend this to update message state if needed
   };
 
-  // STEP 2: Final Save with Rating + Feedback
+  const handleSaveClick = () => {
+    if (messages.length > 0) setOpenModal(true);
+  };
+
   const handleFinalSave = () => {
-    const previous =
-      JSON.parse(localStorage.getItem("conversations")) || [];
-
-    const conversation = {
+    const previous = JSON.parse(localStorage.getItem("conversations")) || [];
+    const newConversation = {
       id: Date.now(),
-      messages,
-      rating,
-      feedbackText,
-      createdAt: new Date().toISOString(),
+      messages: messages,
+      rating: rating,
+      feedback: feedbackText,
     };
-
-    localStorage.setItem(
-      "conversations",
-      JSON.stringify([...previous, conversation])
-    );
-
-    // Reset everything
+    localStorage.setItem("conversations", JSON.stringify([newConversation, ...previous]));
+    
     setMessages([]);
     setRating(0);
     setFeedbackText("");
@@ -91,106 +72,66 @@ const ChatPage = () => {
   };
 
   return (
-    <Box>
-      {/* Top Buttons */}
-      <Stack direction="row" spacing={2} mb={3}>
-        <Button
-          variant="contained"
-          startIcon={<FaHistory />}
-          onClick={() => navigate("/history")}
-        >
-          Past Conversations
-        </Button>
-
-        <Button
-          variant="outlined"
-          startIcon={<FaPlus />}
-          onClick={() => setMessages([])}
-        >
-          New Chat
-        </Button>
-      </Stack>
-
-      {/* First 4 Questions */}
-      <Box mb={2}>
-        {data.slice(0, 4).map((item) => (
-          <Typography
-            key={item.id}
-            sx={{ cursor: "pointer", mb: 1 }}
-            onClick={() => setInput(item.question)}
-          >
-            {item.question}
-          </Typography>
-        ))}
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '90vh', bgcolor: '#F9F9FF' }}>
+      <Box sx={{ flexGrow: 1, overflowY: 'auto', p: { xs: 2, md: 4 } }}>
+        {messages.length === 0 ? (
+          <Box textAlign="center" mt={5}>
+            <Typography variant="h4" sx={{ fontFamily: 'Ubuntu', fontWeight: 'bold', mb: 1 }}>
+              How Can I Help You Today?
+            </Typography>
+            <Box component="img" src="/bot-logo.png" sx={{ width: 80, mb: 4, borderRadius: '50%', boxShadow: 3 }} />
+            <Grid container spacing={2}>
+              {dataJSON.slice(0, 4).map((item, index) => (
+                <Grid item xs={12} sm={6} key={index}>
+                  <Paper 
+                    elevation={0} 
+                    sx={{ p: 3, cursor: 'pointer', borderRadius: '12px', border: '1px solid #E0E0E0', '&:hover': { bgcolor: '#F0EFFF' } }}
+                    onClick={() => setInput(item.question)}
+                  >
+                    <Typography variant="h6" sx={{ fontSize: '1rem', fontWeight: 'bold' }}>{item.question}</Typography>
+                    <Typography variant="body2" color="text.secondary">Get immediate AI response</Typography>
+                  </Paper>
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+        ) : (
+          <Stack spacing={2}>
+            {messages.map((msg, i) => (
+              <ChatBubble 
+                key={i} 
+                message={msg} 
+                onFeedback={handleFeedback} // FIXED: Prop passed here
+              />
+            ))}
+          </Stack>
+        )}
       </Box>
 
-      {/* Messages */}
-      {messages.map((msg, i) => (
-        <ChatBubble key={i} message={msg} />
-      ))}
-
-      {/* Input Form */}
-      <form onSubmit={handleSubmit}>
-        <Stack direction="row" spacing={2} mt={2}>
+      <Box component="form" onSubmit={handleSubmit} sx={{ p: 3, borderTop: '1px solid #EEE' }}>
+        <Stack direction="row" spacing={2}>
           <TextField
             fullWidth
-            placeholder="Message Bot AI…"
+            placeholder="Message Bot AI…" 
             value={input}
             onChange={(e) => setInput(e.target.value)}
           />
-
-          <Button type="submit" variant="contained">
-            Ask
-          </Button>
-
-          <Button
-            type="button"
-            variant="outlined"
-            onClick={handleSave}
-          >
-            Save
-          </Button>
+          <Button type="submit" variant="contained" sx={{ bgcolor: '#D7C7F4', color: '#000' }}>Ask</Button>
+          <Button variant="contained" onClick={handleSaveClick} sx={{ bgcolor: '#D7C7F4', color: '#000' }}>Save</Button>
         </Stack>
-      </form>
+      </Box>
 
-      {/* ✅ FEEDBACK MODAL */}
-      <Dialog open={openModal} onClose={() => setOpenModal(false)} fullWidth>
-        <DialogTitle>Feedback</DialogTitle>
-
-        <DialogContent>
-          <Typography sx={{ mb: 1 }}>
-            Rate this conversation:
-          </Typography>
-
-          <Rating
-            value={rating}
-            onChange={(e, newValue) => setRating(newValue)}
-          />
-
-          <TextField
-            fullWidth
-            multiline
-            rows={3}
-            label="Write your feedback"
-            value={feedbackText}
-            onChange={(e) =>
-              setFeedbackText(e.target.value)
-            }
-            sx={{ mt: 2 }}
-          />
+      <Dialog open={openModal} onClose={() => setOpenModal(false)} fullWidth maxWidth="xs">
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <LightbulbOutlinedIcon /> Provide Additional Feedback
+        </DialogTitle>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Rating size="large" value={rating} onChange={(e, val) => setRating(val)} sx={{ mb: 3 }} />
+          <TextField fullWidth multiline rows={4} placeholder="Write feedback..." value={feedbackText} onChange={(e) => setFeedbackText(e.target.value)} />
         </DialogContent>
-
         <DialogActions>
-          <Button onClick={() => setOpenModal(false)}>
-            Cancel
-          </Button>
-
-          <Button
-            variant="contained"
-            onClick={handleFinalSave}
-          >
-            Submit
-          </Button>
+          <Button onClick={() => setOpenModal(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleFinalSave}>Submit</Button>
         </DialogActions>
       </Dialog>
     </Box>
@@ -198,7 +139,5 @@ const ChatPage = () => {
 };
 
 export default ChatPage;
-
-
 
 

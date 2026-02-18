@@ -7,52 +7,67 @@ import {
   TextField,
   Rating,
   Typography,
+  Box,
 } from "@mui/material";
 import { useState } from "react";
+import LightbulbOutlinedIcon from '@mui/icons-material/LightbulbOutlined';
 
 const FeedbackModal = ({ open, onClose, onSubmit }) => {
   const [rating, setRating] = useState(0);
-  const [feedback, setFeedback] = useState("");
+  const [comment, setComment] = useState(""); // Changed key name for clarity
 
   const handleSubmit = () => {
-    onSubmit({ rating, feedback });
+    // This object structure must match what HistoryPage expects
+    onSubmit({ rating, comment }); 
     setRating(0);
-    setFeedback("");
+    setComment("");
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth>
-      <DialogTitle>Give Feedback</DialogTitle>
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, fontFamily: 'Ubuntu' }}>
+        <LightbulbOutlinedIcon /> Provide Additional Feedback
+      </DialogTitle>
 
       <DialogContent>
-        <Typography mb={2}>
-          Rate your conversation
-        </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 1 }}>
+          <Rating
+            value={rating}
+            onChange={(e, newValue) => setRating(newValue)}
+            size="large"
+            sx={{ mb: 2 }}
+          />
 
-        <Rating
-          value={rating}
-          onChange={(e, newValue) => setRating(newValue)}
-        />
-
-        <TextField
-          fullWidth
-          label="Subjective Feedback"
-          multiline
-          rows={3}
-          sx={{ mt: 2 }}
-          value={feedback}
-          onChange={(e) => setFeedback(e.target.value)}
-        />
+          <TextField
+            fullWidth
+            placeholder="Write your feedback here..."
+            multiline
+            rows={4}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                bgcolor: '#fff',
+              }
+            }}
+          />
+        </Box>
       </DialogContent>
 
-      <DialogActions>
-        <Button onClick={onClose}>
+      <DialogActions sx={{ p: 3 }}>
+        <Button onClick={onClose} sx={{ color: 'text.secondary', textTransform: 'none' }}>
           Cancel
         </Button>
 
         <Button
           variant="contained"
           onClick={handleSubmit}
+          sx={{ 
+            bgcolor: '#D7C7F4', 
+            color: '#000', 
+            '&:hover': { bgcolor: '#BFABE2' },
+            textTransform: 'none'
+          }}
         >
           Submit
         </Button>

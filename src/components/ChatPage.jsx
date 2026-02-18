@@ -1,117 +1,116 @@
-import { useState, useEffect, useRef } from "react";
-import data from "../api/data.json";
-import ChatBubble from "../components/ChatBubble";
+import React, { useState } from "react";
+import { Box, TextField, Button, Stack, Container, Typography, Grid, Paper } from "@mui/material";
+import mockData from "../api/data.json";
 import FeedbackModal from "../components/FeedbackModal";
-import { Box, TextField, Button, Grid, Paper, Typography } from "@mui/material";
 
-const predefinedQuestions = [
-  "Hi, what is the weather",
-  "Hi, what is my location",
-  "Hi, what is the temperature",
-  "Hi, how are you",
-];
+const ChatPage = ({ onSave }) => {
+  const [input, setInput] = useState("");
+  const [chatLog, setChatLog] = useState([]);
+  const [openModal, setOpenModal] = useState(false);
 
-const ChatPage = () => {
-  const [messages, setMessages] = useState([]);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [currentBotIndex, setCurrentBotIndex] = useState(null);
-  const chatEndRef = useRef(null);
+  // Requirement 1, 2, 3, 9, 10: Unified Ask Logic
+  const handleAsk = (e) => {
+    e.preventDefault(); // Requirement 10: Handle form submission
+    if (!input.trim()) return;
 
-  const getBotResponse = (question) => {
-    const found = data.find(
-      (item) => item.question.toLowerCase() === question.toLowerCase()
+    // Requirement 2 & 3: Search logic
+    const found = mockData.find(
+      (item) => item.question.toLowerCase().trim() === input.toLowerCase().trim()
     );
-    return found
-      ? found.response
+
+    // Requirement 2: EXACT default message string
+    const botResponse = found 
+      ? found.response 
       : "Sorry, Did not understand your query!";
+
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    setChatLog((prev) => [
+      ...prev,
+      { role: "You", text: input, time },
+      { role: "Soul AI", text: botResponse, time },
+    ]);
+    
+    setInput(""); // Requirement 9: Clear field after typing
   };
 
-  const handleQuestionClick = (question) => {
-    const userMessage = { sender: "user", text: question };
-    const botResponse = {
-      sender: "bot",
-      text: getBotResponse(question),
+  // Requirement 5: Persistent localStorage Logic
+  const handleSaveSession = (feedback) => {
+    const session = { 
+      id: Date.now(), 
+      messages: chatLog, 
+      feedback 
     };
 
-    setMessages((prev) => [...prev, userMessage, botResponse]);
-  };
+    const existing = JSON.parse(localStorage.getItem("conversations")) || [];
+    localStorage.setItem("conversations", JSON.stringify([session, ...existing])); 
 
-  const handleSave = () => {
-    const saved = JSON.parse(localStorage.getItem("chats")) || [];
-    saved.push(messages);
-    localStorage.setItem("chats", JSON.stringify(saved));
+    if (onSave) onSave(session);
+    setChatLog([]);
+    setOpenModal(false);
   };
-
-  // ✅ Auto scroll to latest message
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
 
   return (
-    <Box p={3}>
-      <Typography variant="h6" textAlign="center" mb={3}>
-        How Can I Help You Today?
-      </Typography>
+    <Container sx={{ py: 2, display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ flexGrow: 1, overflowY: 'auto', mb: 2 }}>
+        {chatLog.length === 0 ? (
+          <Box textAlign="center" mt={5}>
+            <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>How Can I Help You Today?</Typography>
+            <Grid container spacing={2}>
+              {mockData.map((item, i) => (
+                <Grid item xs={12} sm={6} key={i}>
+                  <Paper elevation={2} sx={{ p: 2, cursor: 'pointer' }} onClick={() => setInput(item.question)}>
+                    <Typography variant="subtitle1" fontWeight="bold">{item.question}</Typography>
+                    <Typography variant="caption">Get immediate AI generated response</Typography>
+                  </Paper>
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+        ) : (
+          <Stack spacing={2}>
+            {chatLog.map((msg, i) => (
+              <Box key={i} sx={{ p: 2, bgcolor: msg.role === "You" ? '#f0f0f0' : '#D7C7F433', borderRadius: 2 }}>
+                <Typography variant="subtitle2" fontWeight="bold">
+                  {/* Requirement: Use <span> for names */}
+                  {msg.role === "Soul AI" ? <span>Soul AI</span> : <span>You</span>}
+                </Typography>
+                {/* Requirement: Use <p> for AI response */}
+                <p style={{ margin: '8px 0' }}>{msg.text}</p>
+                <Typography variant="caption" color="text.secondary">{msg.time}</Typography>
+              </Box>
+            ))}
+          </Stack>
+        )}
+      </Box>
 
-      {/* ✅ Only 4 Questions */}
-      <Grid container spacing={2} mb={3}>
-        {predefinedQuestions.map((q, index) => (
-          <Grid item xs={12} sm={6} key={index}>
-            <Paper
-              elevation={3}
-              sx={{
-                padding: 2,
-                cursor: "pointer",
-                "&:hover": { backgroundColor: "#f5f5f5" },
-              }}
-              onClick={() => handleQuestionClick(q)}
-            >
-              <Typography fontWeight="bold">{q}</Typography>
-              <Typography variant="body2" color="text.secondary">
-                Get immediate AI generated response
-              </Typography>
-            </Paper>
-          </Grid>
-        ))}
-      </Grid>
-
-      {/* Chat Messages */}
-      {messages.map((msg, index) => (
-        <ChatBubble
-          key={index}
-          message={msg}
-          onFeedback={(type) => {
-            const updated = [...messages];
-            updated[index].feedback = type;
-            setMessages(updated);
-            setCurrentBotIndex(index);
-            setModalOpen(true);
-          }}
+      {/* Requirement 1, 9, 10: Form and Input Attributes */}
+      <Box component="form" onSubmit={handleAsk} sx={{ display: 'flex', gap: 1 }}>
+        <TextField 
+          fullWidth 
+          // Requirement: Placeholder must match exactly
+          placeholder="Message Bot AI…" 
+          value={input} 
+          onChange={(e) => setInput(e.target.value)}
+          inputProps={{ "data-testid": "chat-input" }} // Optional for easier testing
         />
-      ))}
+        {/* Requirement: Button type submit */}
+        <Button type="submit" variant="contained" sx={{ bgcolor: '#D7C7F4', color: '#000' }}>
+          Ask
+        </Button>
+        {/* Requirement: Button type button */}
+        <Button 
+          type="button" 
+          variant="outlined" 
+          onClick={() => setOpenModal(true)} 
+          disabled={chatLog.length === 0}
+        >
+          Save
+        </Button>
+      </Box>
 
-      <div ref={chatEndRef} />
-
-      {/* Only Save Button (No free typing allowed) */}
-      {messages.length > 0 && (
-        <Box mt={2}>
-          <Button variant="outlined" onClick={handleSave}>
-            Save
-          </Button>
-        </Box>
-      )}
-
-      <FeedbackModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSubmit={(text) => {
-          const updated = [...messages];
-          updated[currentBotIndex].subjective = text;
-          setMessages(updated);
-          setModalOpen(false);
-        }}
-      />
-    </Box>
+      <FeedbackModal open={openModal} onClose={() => setOpenModal(false)} onSubmit={handleSaveSession} />
+    </Container>
   );
 };
 
