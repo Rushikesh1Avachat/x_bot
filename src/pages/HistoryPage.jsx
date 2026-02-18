@@ -5,7 +5,7 @@ import {
   Paper,
   ListItem,
   Avatar,
-  Divider,
+
   Rating,
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';

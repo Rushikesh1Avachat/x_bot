@@ -1,155 +1,196 @@
-// src/pages/ChatPage.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
-  Box, Typography, TextField, Button, Paper, Grid, Container, Stack
+  Box,
+  Container,
+  Typography,
+  Grid,
+  Paper,
+  TextField,
+  Button,
+  Stack,
+  Avatar,
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
 import mockData from '../api/data.json';
 import FeedbackModal from '../components/FeedbackModal';
+import ChatBubble from '../components/ChatBubble';
 
 const DEFAULT_RESPONSE = "Sorry, Did not understand your query!";
 
 export default function ChatPage() {
   const [input, setInput] = useState('');
-  const [messages, setMessages] = useState([]);
-  const [showModal, setShowModal] = useState(false);
+  const [chatLog, setChatLog] = useState([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const scrollRef = useRef(null);
 
-  // 1. Show welcome message on mount
+  // Auto-scroll when number of messages changes
   useEffect(() => {
-    if (messages.length === 0) {
-      setMessages([{ 
-        role: "Soul AI", 
-        text: "How Can I Help You Today?" 
-      }]);
-    }
-  }, []);
+    scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatLog.length]);
 
-  // 9 + 10. Handle typing & form submission
-  const handleSubmit = (e) => {
+useEffect(() => {
+  if (chatLog.length === 0) {
+    const time = new Date().toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    setChatLog([
+      {
+        role: 'Soul AI',
+        text: 'How Can I Help You Today?',
+        time,
+      },
+    ]);
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []); // ← suppression is safe here
+
+  const handleAsk = (e) => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    const userMessage = input.trim();
+    const userText = input.trim();
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     // Add user message
-    setMessages(prev => [...prev, { role: "You", text: userMessage }]);
+    setChatLog((prev) => [...prev, { role: 'You', text: userText, time }]);
 
-    // 2 + 3. Find response (exact match after trim + lowercase)
-    const match = mockData.find(item => 
-      item.question.trim().toLowerCase() === userMessage.toLowerCase().trim()
+    // Find exact match (case-insensitive + trimmed)
+    const found = mockData.find(
+      (item) => item.question.trim().toLowerCase() === userText.toLowerCase().trim()
     );
 
-    const botReply = match ? match.response : DEFAULT_RESPONSE;
+    const botResponse = found ? found.response : DEFAULT_RESPONSE;
 
-    // Add bot reply
-    setMessages(prev => [...prev, { role: "Soul AI", text: botReply }]);
+    // Add bot message (small delay for realism)
+    setTimeout(() => {
+      setChatLog((prev) => [...prev, { role: 'Soul AI', text: botResponse, time }]);
+    }, 400);
 
-    setInput("");
+    setInput('');
   };
 
   const handleSave = () => {
-    if (messages.length < 2) return;
-    setShowModal(true);
+    if (chatLog.length < 2) return;
+    setModalOpen(true);
   };
 
-  const handleFeedback = ({ rating, comment }) => {
-    // 5. Save conversation + feedback
-    const conversation = {
+  const handleFeedbackSubmit = ({ rating, comment }) => {
+    const firstUserMsg = chatLog.find((m) => m.role === 'You')?.text || '';
+    const title = firstUserMsg.slice(0, 40) || 'New conversation';
+
+    const session = {
       id: Date.now(),
-      title: messages[1]?.text?.slice(0, 40) || "New Chat", // first user message
-      messages: [...messages],
-      feedback: { rating, comment: comment.trim() || "" },
+      title,
+      messages: [...chatLog],
+      feedback: { rating, comment: comment.trim() || '(no comment)' },
       timestamp: new Date().toISOString(),
     };
 
-    const existing = JSON.parse(localStorage.getItem("conversations") || "[]");
-    localStorage.setItem("conversations", JSON.stringify([conversation, ...existing]));
+    const previous = JSON.parse(localStorage.getItem('conversations') || '[]');
+    localStorage.setItem('conversations', JSON.stringify([session, ...previous]));
 
-    // Clear current chat → acts as "New Chat"
-    setMessages([]);
-    setShowModal(false);
+    // Reset chat after save
+    setChatLog([]);
+    setModalOpen(false);
+  };
+
+  const handleThumbsFeedback = (msgId, type) => {
+    console.log(`Feedback: ${type} on message ${msgId}`);
+    // Optional: save thumbs-up/down per message here
   };
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      {/* 8. Header – must contain "Bot AI" */}
-      <Typography variant="h4" gutterBottom align="center">
-        Bot AI
-      </Typography>
-
-      {/* Welcome / Suggestions */}
-      {messages.length <= 1 ? (
-        <Box textAlign="center" mt={6}>
-          <Typography variant="h5" gutterBottom>
-            How Can I Help You Today?
-          </Typography>
-
-          <Grid container spacing={2} justifyContent="center" mt={4}>
-            {mockData.slice(0, 4).map((item, i) => (
-              <Grid item xs={12} sm={6} key={i}>
-                <Paper
-                  elevation={2}
-                  sx={{ p: 3, cursor: 'pointer' }}
-                  onClick={() => setInput(item.question)}
-                >
-                  <Typography variant="subtitle1" fontWeight="bold">
-                    {item.question}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    Get immediate AI generated response
-                  </Typography>
-                </Paper>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
-      ) : (
-        <Stack spacing={2} sx={{ mb: 4 }}>
-          {messages.map((msg, i) => (
-            <Paper
-              key={i}
+    <Container maxWidth="md" sx={{ height: '100%', display: 'flex', flexDirection: 'column', py: 2 }}>
+      {/* Messages / Welcome area */}
+      <Box sx={{ flex: 1, overflowY: 'auto', mb: 3 }}>
+        {chatLog.length <= 1 ? (
+          <Box textAlign="center" mt={8}>
+            <Avatar
               sx={{
-                p: 2,
-                alignSelf: msg.role === 'You' ? 'flex-end' : 'flex-start',
-                maxWidth: '80%',
-                bgcolor: msg.role === 'You' ? '#e3f2fd' : '#f3e5f5',
-                borderRadius: msg.role === 'You' 
-                  ? '20px 20px 0 20px' 
-                  : '20px 20px 20px 0',
+                width: 100,
+                height: 100,
+                mx: 'auto',
+                mb: 4,
+                bgcolor: '#9747FF',
               }}
             >
-              <Typography variant="subtitle2" fontWeight="bold">
-                {msg.role === 'Soul AI' ? <span>Soul AI</span> : <span>You</span>}
-              </Typography>
+              <SmartToyIcon fontSize="large" />
+            </Avatar>
 
-              {msg.role === 'Soul AI' ? (
-                <p style={{ margin: '8px 0', lineHeight: 1.5 }}>
-                  {msg.text}
-                </p>
-              ) : (
-                <Typography>{msg.text}</Typography>
-              )}
-            </Paper>
-          ))}
-        </Stack>
-      )}
+            <Typography variant="h4" fontWeight="bold" gutterBottom sx={{ color: '#333' }}>
+              How Can I Help You Today?
+            </Typography>
 
-      {/* 9 + 10. Input form */}
-      <Box component="form" onSubmit={handleSubmit}>
-        <Stack direction="row" spacing={2}>
+            <Grid container spacing={2} justifyContent="center" mt={5}>
+              {[
+                'Hi, what is the weather',
+                'Hi, what is my location',
+                'Hi, what is the temperature',
+                'Hi, how are you',
+              ].map((q, i) => (
+                <Grid item xs={12} sm={6} key={i}>
+                  <Paper
+                    elevation={3}
+                    sx={{
+                      p: 3,
+                      borderRadius: 3,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      '&:hover': { transform: 'translateY(-6px)', boxShadow: 6 },
+                    }}
+                    onClick={() => setInput(q)}
+                  >
+                    <Typography variant="subtitle1" fontWeight="bold">
+                      {q}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                      Get immediate AI generated response
+                    </Typography>
+                  </Paper>
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+        ) : (
+          <Stack spacing={3}>
+            {chatLog.map((msg, index) => (
+              <ChatBubble
+                key={index}
+                message={{ ...msg, id: index }} // ← pass id so thumbs work
+                onFeedback={handleThumbsFeedback}
+              />
+            ))}
+            <div ref={scrollRef} />
+          </Stack>
+        )}
+      </Box>
+
+      {/* Input + buttons */}
+      <Box component="form" onSubmit={handleAsk}>
+        <Stack direction="row" spacing={1.5} alignItems="center">
           <TextField
             fullWidth
             placeholder="Message Bot AI…"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             variant="outlined"
+            size="medium"
           />
 
           <Button
             type="submit"
             variant="contained"
             endIcon={<SendIcon />}
-            sx={{ minWidth: 100 }}
+            sx={{
+              bgcolor: '#9747FF',
+              color: 'white',
+              minWidth: 100,
+              py: 1.5,
+            }}
+            disabled={!input.trim()}
           >
             Ask
           </Button>
@@ -158,18 +199,24 @@ export default function ChatPage() {
             type="button"
             variant="outlined"
             onClick={handleSave}
-            disabled={messages.length < 2}
-            sx={{ minWidth: 100 }}
+            disabled={chatLog.length === 0}
+            sx={{
+              minWidth: 100,
+              py: 1.5,
+              borderColor: '#9747FF',
+              color: '#9747FF',
+            }}
           >
             Save
           </Button>
         </Stack>
       </Box>
 
+      {/* Feedback Modal */}
       <FeedbackModal
-        open={showModal}
-        onClose={() => setShowModal(false)}
-        onSubmit={handleFeedback}
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSubmit={handleFeedbackSubmit} // ← now used!
       />
     </Container>
   );
