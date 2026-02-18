@@ -12,15 +12,14 @@ import {
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
-import data from '../api/data.json';
+import mockData from '../api/data.json';
 import FeedbackModal from '../components/FeedbackModal';
-import ChatBubble from '../components/ChatBubble';
 
 const DEFAULT_RESPONSE = "Sorry, Did not understand your query!";
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const [messages, setMessages] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const endRef = useRef(null);
 
@@ -46,15 +45,13 @@ export default function ChatPage() {
 
     setMessages(prev => [...prev, { role: 'You', text: userText, time }]);
 
-    const found = data.find(item => 
+    const found = mockData.find(item => 
       item.question.trim().toLowerCase() === userText.toLowerCase().trim()
     );
 
     const botReply = found ? found.response : DEFAULT_RESPONSE;
 
-    setTimeout(() => {
-      setMessages(prev => [...prev, { role: 'Soul AI', text: botReply, time }]);
-    }, 300);
+    setMessages(prev => [...prev, { role: 'Soul AI', text: botReply, time }]);
 
     setInput('');
   };
@@ -82,44 +79,94 @@ export default function ChatPage() {
     setModalOpen(false);
   };
 
-  const handleThumbs = (id, type) => {
-    console.log(`Thumbs ${type} on ${id}`);
-  };
-
   return (
-    <Container maxWidth="md" sx={{ height: '100%', py: 4, px: { xs: 2, md: 4 } }}>
+    <Container 
+      maxWidth="md" 
+      sx={{ 
+        height: '100%', 
+        py: { xs: 4, md: 6 }, 
+        px: { xs: 2, md: 4 },
+        display: 'flex',
+        flexDirection: 'column',
+        bgcolor: '#f9f9fb',
+      }}
+    >
       {messages.length <= 1 ? (
-        <Box textAlign="center" mt={8}>
-          <Avatar sx={{ width: 100, height: 100, mx: 'auto', mb: 3, bgcolor: '#9747FF' }}>
-            <SmartToyIcon fontSize="large" />
+        // ── Exact welcome screen ──
+        <Box 
+          sx={{ 
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+          }}
+        >
+          {/* Purple avatar with brain-like icon */}
+          <Avatar 
+            sx={{ 
+              width: 140, 
+              height: 140, 
+              mb: 5, 
+              bgcolor: '#9747FF',
+              boxShadow: '0 12px 40px rgba(151,71,255,0.3)',
+            }}
+          >
+            <SmartToyIcon sx={{ fontSize: 80, color: 'white' }} />
           </Avatar>
-          <Typography variant="h4" fontWeight="bold" gutterBottom>
+
+          {/* Title – exact match */}
+          <Typography 
+            variant="h4" 
+            fontWeight="bold" 
+            gutterBottom 
+            sx={{ 
+              color: '#1a1a1a', 
+              mb: 7,
+              fontSize: { xs: '1.8rem', md: '2.4rem' }
+            }}
+          >
             How Can I Help You Today?
           </Typography>
 
-          <Grid container spacing={2} justifyContent="center" mt={5}>
+          {/* 2×2 suggestion cards */}
+          <Grid container spacing={3} justifyContent="center" sx={{ maxWidth: 900 }}>
             {[
               'Hi, what is the weather',
               'Hi, what is my location',
               'Hi, what is the temperature',
-              'Hi, how are you',
+              'Hi, how are you'
             ].map((q, i) => (
               <Grid item xs={12} sm={6} key={i}>
                 <Paper
                   elevation={3}
                   sx={{
-                    p: 3,
+                    p: 3.5,
                     borderRadius: 3,
                     cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    '&:hover': { transform: 'translateY(-6px)', boxShadow: 6 },
+                    transition: 'all 0.25s ease',
+                    background: 'white',
+                    border: '1px solid #e0e0e0',
+                    '&:hover': { 
+                      transform: 'translateY(-6px)', 
+                      boxShadow: '0 12px 32px rgba(0,0,0,0.1)',
+                    },
                   }}
                   onClick={() => setInput(q)}
                 >
-                  <Typography variant="subtitle1" fontWeight="bold">
+                  <Typography 
+                    variant="subtitle1" 
+                    fontWeight="bold" 
+                    sx={{ mb: 1, color: '#1a1a1a' }}
+                  >
                     {q}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+                  <Typography 
+                    variant="caption" 
+                    color="text.secondary"
+                    sx={{ fontSize: '0.9rem' }}
+                  >
                     Get immediate AI generated response
                   </Typography>
                 </Paper>
@@ -128,21 +175,56 @@ export default function ChatPage() {
           </Grid>
         </Box>
       ) : (
-        <Box sx={{ flex: 1, overflowY: 'auto', mb: 4 }}>
-          <Stack spacing={3}>
-            {messages.map((msg, i) => (
-              <ChatBubble
-                key={i}
-                message={{ ...msg, id: i }}
-                onFeedback={handleThumbs}
-              />
-            ))}
-            <div ref={endRef} />
-          </Stack>
-        </Box>
+        // Chat messages (once conversation starts)
+        <Stack spacing={3} sx={{ mb: 4 }}>
+          {messages.map((msg, i) => (
+            <Box
+              key={i}
+              sx={{
+                alignSelf: msg.role === 'You' ? 'flex-end' : 'flex-start',
+                maxWidth: '82%',
+              }}
+            >
+              <Paper
+                sx={{
+                  p: 2.5,
+                  bgcolor: msg.role === 'You' ? '#f0f0f0' : '#D7C7F433',
+                  borderRadius: msg.role === 'You' ? '20px 20px 0 20px' : '20px 20px 20px 0',
+                  boxShadow: '0 3px 12px rgba(0,0,0,0.08)',
+                }}
+              >
+                <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 0.8 }}>
+                  {msg.role === 'Soul AI' ? <span>Soul AI</span> : <span>You</span>}
+                </Typography>
+
+                <p style={{ margin: '6px 0 10px 0', lineHeight: 1.5 }}>
+                  {msg.text}
+                </p>
+
+                <Typography variant="caption" color="text.secondary">
+                  {msg.time}
+                </Typography>
+              </Paper>
+            </Box>
+          ))}
+          <div ref={endRef} />
+        </Stack>
       )}
 
-      <Box component="form" onSubmit={handleAsk}>
+      {/* Bottom input bar – exact match */}
+      <Box 
+        component="form" 
+        onSubmit={handleAsk}
+        sx={{ 
+          position: 'sticky', 
+          bottom: 0, 
+          bgcolor: 'white', 
+          p: 2, 
+          borderTop: '1px solid #eee',
+          zIndex: 10,
+          boxShadow: '0 -2px 10px rgba(0,0,0,0.05)',
+        }}
+      >
         <Stack direction="row" spacing={1.5} alignItems="center">
           <TextField
             fullWidth
@@ -150,22 +232,51 @@ export default function ChatPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             variant="outlined"
+            size="medium"
+            sx={{ 
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 3,
+                bgcolor: '#fafafa',
+              }
+            }}
           />
+
           <Button
             type="submit"
             variant="contained"
             endIcon={<SendIcon />}
-            sx={{ bgcolor: '#9747FF', color: 'white', minWidth: 100 }}
+            sx={{ 
+              bgcolor: '#9747FF', 
+              minWidth: 120,
+              py: 1.5,
+              borderRadius: 3,
+              textTransform: 'none',
+              fontWeight: 600,
+              '&:hover': { bgcolor: '#7C3AED' }
+            }}
             disabled={!input.trim()}
           >
             Ask
           </Button>
+
           <Button
             type="button"
             variant="outlined"
             onClick={handleSave}
             disabled={messages.length < 2}
-            sx={{ minWidth: 100, borderColor: '#9747FF', color: '#9747FF' }}
+            sx={{ 
+              minWidth: 120,
+              py: 1.5,
+              borderRadius: 3,
+              borderColor: '#9747FF',
+              color: '#9747FF',
+              textTransform: 'none',
+              fontWeight: 600,
+              '&:hover': { 
+                borderColor: '#7C3AED', 
+                bgcolor: '#F8F5FF' 
+              }
+            }}
           >
             Save
           </Button>

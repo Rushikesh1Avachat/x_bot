@@ -13,6 +13,7 @@ import {
 import MenuIcon from '@mui/icons-material/Menu';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import HistoryIcon from '@mui/icons-material/History';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
 
 const drawerWidth = 280;
 
@@ -41,7 +42,7 @@ export default function Layout({ children, currentView, onViewChange }) {
         }}
         sx={{
           mb: 2,
-          py: 1.8,
+          py: 1.5,
           justifyContent: 'flex-start',
           textTransform: 'none',
           fontWeight: 600,
@@ -64,7 +65,8 @@ export default function Layout({ children, currentView, onViewChange }) {
           if (isMobile) setMobileOpen(false);
         }}
         sx={{
-          py: 1.8,
+          mb: 2,
+          py: 1.5,
           justifyContent: 'flex-start',
           textTransform: 'none',
           fontWeight: 600,
@@ -77,34 +79,52 @@ export default function Layout({ children, currentView, onViewChange }) {
       >
         Past Conversations
       </Button>
+
+      {/* New: All Feedback View button */}
+      <Button
+        fullWidth
+        variant={currentView === 'feedback' ? 'contained' : 'outlined'}
+        startIcon={<StarBorderIcon />}
+        onClick={() => {
+          onViewChange('feedback');
+          if (isMobile) setMobileOpen(false);
+        }}
+        sx={{
+          py: 1.5,
+          justifyContent: 'flex-start',
+          textTransform: 'none',
+          fontWeight: 600,
+          bgcolor: currentView === 'feedback' ? '#9747FF' : 'transparent',
+          color: currentView === 'feedback' ? 'white' : '#9747FF',
+          borderColor: '#9747FF',
+          borderRadius: 2,
+          '&:hover': { bgcolor: currentView === 'feedback' ? '#7C3AED' : '#F0E8FF' },
+        }}
+      >
+        All Feedback
+      </Button>
     </Box>
   );
 
   return (
     <Box sx={{ display: 'flex', height: '100vh' }}>
-      {/* Desktop Sidebar */}
       {!isMobile && (
         <Box sx={{ width: drawerWidth, flexShrink: 0, borderRight: '1px solid #E0D4FF' }}>
           {sidebarContent}
         </Box>
       )}
 
-      {/* Mobile Drawer */}
       {isMobile && (
         <Drawer
           variant="temporary"
           open={mobileOpen}
           onClose={handleDrawerToggle}
-          ModalProps={{ keepMounted: true }}
-          sx={{
-            '& .MuiDrawer-paper': { width: drawerWidth, bgcolor: '#F8F5FF' },
-          }}
+          sx={{ '& .MuiDrawer-paper': { width: drawerWidth } }}
         >
           {sidebarContent}
         </Drawer>
       )}
 
-      {/* Main Content */}
       <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
         {isMobile && (
           <AppBar position="fixed" sx={{ bgcolor: '#9747FF' }}>
