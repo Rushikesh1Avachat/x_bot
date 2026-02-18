@@ -25,7 +25,7 @@ export default function Layout({ children, currentView, onViewChange }) {
     setMobileOpen(!mobileOpen);
   };
 
-  const sidebar = (
+  const sidebarContent = (
     <Box sx={{ width: drawerWidth, height: '100%', p: 3, bgcolor: '#F8F5FF' }}>
       <Typography variant="h5" fontWeight="bold" sx={{ mb: 5, color: '#9747FF' }}>
         Bot AI
@@ -82,23 +82,29 @@ export default function Layout({ children, currentView, onViewChange }) {
 
   return (
     <Box sx={{ display: 'flex', height: '100vh' }}>
+      {/* Desktop Sidebar */}
       {!isMobile && (
         <Box sx={{ width: drawerWidth, flexShrink: 0, borderRight: '1px solid #E0D4FF' }}>
-          {sidebar}
+          {sidebarContent}
         </Box>
       )}
 
+      {/* Mobile Drawer */}
       {isMobile && (
         <Drawer
           variant="temporary"
           open={mobileOpen}
           onClose={handleDrawerToggle}
-          sx={{ '& .MuiDrawer-paper': { width: drawerWidth } }}
+          ModalProps={{ keepMounted: true }}
+          sx={{
+            '& .MuiDrawer-paper': { width: drawerWidth, bgcolor: '#F8F5FF' },
+          }}
         >
-          {sidebar}
+          {sidebarContent}
         </Drawer>
       )}
 
+      {/* Main Content */}
       <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
         {isMobile && (
           <AppBar position="fixed" sx={{ bgcolor: '#9747FF' }}>

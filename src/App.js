@@ -4,11 +4,11 @@ import ChatPage from './pages/ChatPage';
 import HistoryPage from './pages/HistoryPage';
 
 export default function App() {
-  const [currentView, setCurrentView] = useState('chat');
+  const [view, setView] = useState('chat');
 
   return (
-    <Layout currentView={currentView} onViewChange={setCurrentView}>
-      {currentView === 'chat' ? <ChatPage /> : <HistoryPage />}
+    <Layout currentView={view} onViewChange={setView}>
+      {view === 'chat' ? <ChatPage /> : <HistoryPage />}
     </Layout>
   );
 }

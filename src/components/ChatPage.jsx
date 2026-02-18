@@ -24,17 +24,18 @@ export default function ChatPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const endRef = useRef(null);
 
+  // Welcome message – only once
   useEffect(() => {
     if (messages.length === 0) {
-      setMessages([
-        { role: 'Soul AI', text: 'How Can I Help You Today?' },
-      ]);
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      setMessages([{ role: 'Soul AI', text: 'How Can I Help You Today?', time }]);
     }
   }, []);
 
+  // Auto-scroll
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages.length]);
 
   const handleAsk = (e) => {
     e.preventDefault();
@@ -51,7 +52,9 @@ export default function ChatPage() {
 
     const botReply = found ? found.response : DEFAULT_RESPONSE;
 
-    setMessages(prev => [...prev, { role: 'Soul AI', text: botReply, time }]);
+    setTimeout(() => {
+      setMessages(prev => [...prev, { role: 'Soul AI', text: botReply, time }]);
+    }, 300);
 
     setInput('');
   };
@@ -90,16 +93,16 @@ export default function ChatPage() {
           <Avatar sx={{ width: 100, height: 100, mx: 'auto', mb: 3, bgcolor: '#9747FF' }}>
             <SmartToyIcon fontSize="large" />
           </Avatar>
-          <Typography variant="h4" fontWeight="bold" gutterBottom sx={{ color: '#333' }}>
+          <Typography variant="h4" fontWeight="bold" gutterBottom>
             How Can I Help You Today?
           </Typography>
 
           <Grid container spacing={2} justifyContent="center" mt={5}>
             {[
-              "Hi, what is the weather",
-              "Hi, what is my location",
-              "Hi, what is the temperature",
-              "Hi, how are you"
+              'Hi, what is the weather',
+              'Hi, what is my location',
+              'Hi, what is the temperature',
+              'Hi, how are you',
             ].map((q, i) => (
               <Grid item xs={12} sm={6} key={i}>
                 <Paper
@@ -109,14 +112,14 @@ export default function ChatPage() {
                     borderRadius: 3,
                     cursor: 'pointer',
                     transition: 'all 0.2s',
-                    '&:hover': { transform: 'translateY(-6px)', boxShadow: 8 },
+                    '&:hover': { transform: 'translateY(-6px)', boxShadow: 6 },
                   }}
                   onClick={() => setInput(q)}
                 >
                   <Typography variant="subtitle1" fontWeight="bold">
                     {q}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
                     Get immediate AI generated response
                   </Typography>
                 </Paper>
@@ -140,20 +143,19 @@ export default function ChatPage() {
       )}
 
       <Box component="form" onSubmit={handleAsk}>
-        <Stack direction="row" spacing={2} alignItems="center">
+        <Stack direction="row" spacing={1.5} alignItems="center">
           <TextField
             fullWidth
             placeholder="Message Bot AI…"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             variant="outlined"
-            sx={{ bgcolor: 'white' }}
           />
           <Button
             type="submit"
             variant="contained"
             endIcon={<SendIcon />}
-            sx={{ bgcolor: '#9747FF', minWidth: 100, py: 1.5 }}
+            sx={{ bgcolor: '#9747FF', color: 'white', minWidth: 100 }}
             disabled={!input.trim()}
           >
             Ask
@@ -163,7 +165,7 @@ export default function ChatPage() {
             variant="outlined"
             onClick={handleSave}
             disabled={messages.length < 2}
-            sx={{ minWidth: 100, py: 1.5 }}
+            sx={{ minWidth: 100, borderColor: '#9747FF', color: '#9747FF' }}
           >
             Save
           </Button>
