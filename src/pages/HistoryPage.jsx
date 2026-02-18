@@ -5,9 +5,7 @@ import {
   Paper,
   List,
   ListItem,
-
   Avatar,
-  Divider,
   Rating,
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
@@ -30,7 +28,7 @@ export default function HistoryPage() {
       <Box sx={{ textAlign: 'center', py: 10 }}>
         <SmartToyIcon sx={{ fontSize: 80, color: 'action.disabled', mb: 2 }} />
         <Typography variant="h6" color="text.secondary">
-          No past conversations yet
+          No conversations yet
         </Typography>
       </Box>
     );
@@ -38,7 +36,7 @@ export default function HistoryPage() {
 
   return (
     <Box sx={{ maxWidth: 900, mx: 'auto', px: 2 }}>
-      <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ mb: 3 }}>
+      <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ mb: 3, color: '#333' }}>
         Conversation History
       </Typography>
 
@@ -46,73 +44,78 @@ export default function HistoryPage() {
         Today's Chats
       </Typography>
 
-      <Paper sx={{ bgcolor: '#F8F5FF', borderRadius: 3 }}>
-        <List disablePadding>
-          {conversations.map((conv, idx) => (
-            <Box key={conv.id}>
-              {idx > 0 && <Divider />}
-              <ListItem sx={{ py: 2.5, px: 3, flexDirection: 'column', alignItems: 'flex-start' }}>
-                {/* Preview messages */}
-                <Box sx={{ width: '100%', mb: 1.5 }}>
-                  {conv.messages.slice(-2).map((msg, i) => (
-                    <Box
-                      key={i}
-                      sx={{
-                        mb: 1,
-                        p: 1.8,
-                        borderRadius: msg.role === 'You' ? '16px 16px 0 16px' : '16px 16px 16px 0',
-                        bgcolor: msg.role === 'You' ? '#E0F7FA' : '#EDE7FF',
-                        maxWidth: '85%',
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                        <Avatar sx={{ width: 32, height: 32, bgcolor: msg.role === 'You' ? 'secondary.main' : 'primary.main' }}>
-                          {msg.role === 'You' ? <PersonIcon fontSize="small" /> : <SmartToyIcon fontSize="small" />}
-                        </Avatar>
-                        <Typography variant="subtitle2">
-                          {msg.role}
-                        </Typography>
-                      </Box>
-                      <Typography variant="body2">
-                        {msg.text?.slice(0, 70)}{msg.text?.length > 70 ? '...' : ''}
+      <List disablePadding>
+        {conversations.map((conv, idx) => (
+          <Paper
+            key={conv.id}
+            elevation={2}
+            sx={{
+              mb: 2,
+              borderRadius: 3,
+              overflow: 'hidden',
+              bgcolor: '#F8F5FF',
+            }}
+          >
+            <ListItem sx={{ py: 2.5, px: 3, flexDirection: 'column', alignItems: 'flex-start' }}>
+              <Box sx={{ width: '100%', mb: 1.5 }}>
+                {conv.messages.slice(-2).map((msg, i) => (
+                  <Box
+                    key={i}
+                    sx={{
+                      mb: 1.2,
+                      p: 2,
+                      borderRadius: msg.role === 'You' ? '16px 16px 0 16px' : '16px 16px 16px 0',
+                      bgcolor: msg.role === 'You' ? '#FFFFFF' : '#EDE7FF',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.8 }}>
+                      <Avatar sx={{ width: 36, height: 36, bgcolor: msg.role === 'You' ? '#FF6B6B' : '#9747FF' }}>
+                        {msg.role === 'You' ? <PersonIcon fontSize="small" /> : <SmartToyIcon fontSize="small" />}
+                      </Avatar>
+                      <Typography variant="subtitle1" fontWeight={600}>
+                        {msg.role === 'Soul AI' ? <span>Soul AI</span> : <span>You</span>}
                       </Typography>
                     </Box>
-                  ))}
-                </Box>
-
-                {/* Summary */}
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                  <Box>
-                    <Typography variant="subtitle1" fontWeight={600}>
-                      {conv.title}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {new Date(conv.timestamp).toLocaleString([], { hour: '2-digit', minute: '2-digit' })}
-                      {' • '}
-                      {conv.messages.length} messages
+                    <Typography variant="body2" sx={{ lineHeight: 1.5 }}>
+                      {msg.text?.slice(0, 90)}{msg.text?.length > 90 ? '...' : ''}
                     </Typography>
                   </Box>
+                ))}
+              </Box>
 
-                  {conv.feedback && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Rating value={conv.feedback.rating} readOnly size="small" />
-                      {conv.feedback.comment && (
-                        <Typography variant="caption" color="text.secondary">
-                          "{conv.feedback.comment.slice(0, 35)}..."
-                        </Typography>
-                      )}
-                    </Box>
-                  )}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                <Box>
+                  <Typography variant="subtitle1" fontWeight={600}>
+                    {conv.title}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {new Date(conv.timestamp).toLocaleString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      day: 'numeric',
+                      month: 'short',
+                    })}
+                    {' • '}
+                    {conv.messages.length} messages
+                  </Typography>
                 </Box>
-              </ListItem>
-            </Box>
-          ))}
-        </List>
-      </Paper>
+
+                {conv.feedback && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Rating value={conv.feedback.rating} readOnly size="small" sx={{ color: '#FFB400' }} />
+                    {conv.feedback.comment && (
+                      <Typography variant="caption" color="text.secondary">
+                        "{conv.feedback.comment.slice(0, 40)}..."
+                      </Typography>
+                    )}
+                  </Box>
+                )}
+              </Box>
+            </ListItem>
+          </Paper>
+        ))}
+      </List>
     </Box>
   );
 }
-
-
-
-

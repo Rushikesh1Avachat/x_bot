@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -8,17 +8,17 @@ import {
   TextField,
   Rating,
   Box,
-} from "@mui/material";
+} from '@mui/material';
 import LightbulbOutlinedIcon from '@mui/icons-material/LightbulbOutlined';
 
-const FeedbackModal = ({ open, onClose, onSubmit }) => {
+export default function FeedbackModal({ open, onClose, onSubmit }) {
   const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState("");
+  const [comment, setComment] = useState('');
 
   const handleSubmit = () => {
     onSubmit({ rating, comment });
     setRating(0);
-    setComment("");
+    setComment('');
     onClose();
   };
 
@@ -30,16 +30,16 @@ const FeedbackModal = ({ open, onClose, onSubmit }) => {
       </DialogTitle>
 
       <DialogContent>
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, mt: 1 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
           <Rating
             value={rating}
-            onChange={(e, newValue) => setRating(newValue)}
+            onChange={(_, v) => setRating(v)}
             size="large"
           />
           <TextField
-            fullWidth
             multiline
             rows={4}
+            fullWidth
             placeholder="Write your feedback here..."
             value={comment}
             onChange={(e) => setComment(e.target.value)}
@@ -49,20 +49,16 @@ const FeedbackModal = ({ open, onClose, onSubmit }) => {
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 3 }}>
-        <Button onClick={onClose} sx={{ color: 'text.secondary' }}>
-          Cancel
-        </Button>
+        <Button onClick={onClose}>Cancel</Button>
         <Button
           variant="contained"
           onClick={handleSubmit}
           disabled={rating === 0}
-          sx={{ bgcolor: '#D7C7F4', color: '#000' }}
+          sx={{ bgcolor: '#9747FF', color: 'white' }}
         >
           Submit
         </Button>
       </DialogActions>
     </Dialog>
   );
-};
-
-export default FeedbackModal;
+}

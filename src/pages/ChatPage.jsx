@@ -8,21 +8,49 @@ import {
   TextField,
   Button,
   Stack,
+  Avatar,
+  IconButton,
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
+import PersonIcon from '@mui/icons-material/Person';
+import { FaThumbsUp, FaThumbsDown } from 'react-icons/fa';
 import mockData from '../api/data.json';
-import FeedbackModal from '../components/FeedbackModal';  // ← import the separate component
+import FeedbackModal from '../components/FeedbackModal';
 
-const ChatPage = () => {
+const DEFAULT_RESPONSE = "Sorry, Did not understand your query!";
+
+export default function ChatPage() {
   const [input, setInput] = useState('');
   const [chatLog, setChatLog] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const scrollRef = useRef(null);
 
-  // Auto-scroll to latest message
+  // Auto-scroll to bottom
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatLog]);
+  }, [chatLog.length]); // ← depend on length (primitive value) to satisfy ESLint
+
+// Initial welcome message – only set once when component first renders
+if (chatLog.length === 0) {
+  const welcomeTime = new Date().toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  setChatLog([
+    {
+      role: 'Soul AI',
+      text: 'How Can I Help You Today?',
+      time: welcomeTime,
+    },
+  ]);
+}
+
+// Auto-scroll effect (this one can safely depend on chatLog.length)
+useEffect(() => {
+  scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
+}, [chatLog.length]);
 
   const handleAsk = (e) => {
     e.preventDefault();
@@ -31,74 +59,99 @@ const ChatPage = () => {
     const userText = input.trim();
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    // Find exact match (case-insensitive)
+    // Add user message
+    setChatLog((prev) => [...prev, { role: 'You', text: userText, time }]);
+
+    // Find response (exact match, case-insensitive)
     const found = mockData.find(
-      (item) => item.question.toLowerCase().trim() === userText.toLowerCase().trim()
+      (item) => item.question.trim().toLowerCase() === userText.toLowerCase().trim()
     );
 
-    const botResponse = found
-      ? found.response
-      : "Sorry, Did not understand your query!";
+    const botResponse = found ? found.response : DEFAULT_RESPONSE;
 
-    setChatLog((prev) => [
-      ...prev,
-      { role: "You", text: userText, time },
-      { role: "Soul AI", text: botResponse, time },
-    ]);
+    // Add bot message (with tiny delay for realism)
+    setTimeout(() => {
+      setChatLog((prev) => [...prev, { role: 'Soul AI', text: botResponse, time }]);
+    }, 400);
 
-    setInput("");
+    setInput('');
   };
 
   const handleSave = () => {
-    if (chatLog.length === 0) return;
+    if (chatLog.length < 2) return;
     setModalOpen(true);
   };
 
   const handleFeedbackSubmit = ({ rating, comment }) => {
-    // Save chat + feedback to localStorage
+    const firstUserMsg = chatLog.find((m) => m.role === 'You')?.text || '';
+    const title = firstUserMsg.slice(0, 40) || 'New conversation';
+
     const session = {
       id: Date.now(),
-      title: chatLog[0]?.text?.slice(0, 40) || "New conversation",
+      title,
       messages: [...chatLog],
-      feedback: { rating, comment: comment.trim() || "(no comment)" },
+      feedback: { rating, comment: comment.trim() || '(no comment)' },
       timestamp: new Date().toISOString(),
     };
 
-    const previous = JSON.parse(localStorage.getItem("conversations") || "[]");
-    localStorage.setItem("conversations", JSON.stringify([session, ...previous]));
+    const previous = JSON.parse(localStorage.getItem('conversations') || '[]');
+    localStorage.setItem('conversations', JSON.stringify([session, ...previous]));
 
-    // Reset chat after save
+    // Reset chat
     setChatLog([]);
     setModalOpen(false);
+  };
+
+  const handleThumbsFeedback = (index, type) => {
+    console.log(`Thumbs ${type} on message ${index}`);
+    // You can save per-message thumbs feedback here if needed
   };
 
   return (
     <Container maxWidth="md" sx={{ height: '100%', display: 'flex', flexDirection: 'column', py: 2 }}>
       {/* Messages / Welcome area */}
       <Box sx={{ flex: 1, overflowY: 'auto', mb: 3 }}>
-        {chatLog.length === 0 ? (
-          <Box textAlign="center" mt={6}>
-            <Typography variant="h4" fontWeight="bold" gutterBottom>
+        {chatLog.length <= 1 ? (
+          <Box textAlign="center" mt={8}>
+            <Avatar
+              sx={{
+                width: 100,
+                height: 100,
+                mx: 'auto',
+                mb: 4,
+                bgcolor: '#9747FF',
+              }}
+            >
+              <SmartToyIcon fontSize="large" />
+            </Avatar>
+
+            <Typography variant="h4" fontWeight="bold" gutterBottom sx={{ color: '#333' }}>
               How Can I Help You Today?
             </Typography>
 
-            <Grid container spacing={2} justifyContent="center" mt={4}>
-              {mockData.slice(0, 8).map((item, index) => (
-                <Grid item xs={12} sm={6} md={4} key={index}>
+            <Grid container spacing={2} justifyContent="center" mt={5}>
+              {[
+                'Hi, what is the weather',
+                'Hi, what is my location',
+                'Hi, what is the temperature',
+                'Hi, how are you',
+              ].map((q, i) => (
+                <Grid item xs={12} sm={6} key={i}>
                   <Paper
-                    elevation={2}
+                    elevation={3}
                     sx={{
-                      p: 2.5,
+                      p: 3,
+                      borderRadius: 3,
                       cursor: 'pointer',
-                      transition: 'all 0.18s',
-                      '&:hover': { transform: 'translateY(-4px)', boxShadow: 6 },
+                      transition: 'all 0.2s',
+                      '&:hover': { transform: 'translateY(-6px)', boxShadow: 6 },
                     }}
-                    onClick={() => setInput(item.question)}
+                    onClick={() => setInput(q)}
                   >
                     <Typography variant="subtitle1" fontWeight="bold">
-                      {item.question}
+                      {q}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
                       Get immediate AI generated response
                     </Typography>
                   </Paper>
@@ -107,38 +160,75 @@ const ChatPage = () => {
             </Grid>
           </Box>
         ) : (
-          <Stack spacing={2.5}>
+          <Stack spacing={3}>
             {chatLog.map((msg, index) => (
-              <Paper
+              <Box
                 key={index}
                 sx={{
-                  p: 2,
-                  maxWidth: '82%',
                   alignSelf: msg.role === 'You' ? 'flex-end' : 'flex-start',
-                  bgcolor: msg.role === 'You' ? '#f0f0f0' : '#D7C7F433',
-                  borderRadius:
-                    msg.role === 'You' ? '16px 16px 0 16px' : '16px 16px 16px 0',
+                  maxWidth: '80%',
                 }}
               >
-                <Typography variant="subtitle2" fontWeight="bold">
-                  {msg.role === 'Soul AI' ? <span>Soul AI</span> : <span>You</span>}
-                </Typography>
+                <Paper
+                  sx={{
+                    p: 2,
+                    borderRadius: msg.role === 'You' ? '20px 20px 0 20px' : '20px 20px 20px 0',
+                    bgcolor: msg.role === 'You' ? '#F0F0F0' : '#D7C7F433',
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                    <Avatar
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        bgcolor: msg.role === 'You' ? '#FF6B6B' : '#9747FF',
+                      }}
+                    >
+                      {msg.role === 'You' ? <PersonIcon /> : <SmartToyIcon />}
+                    </Avatar>
+                    <Typography variant="subtitle1" fontWeight={600}>
+                      {msg.role === 'Soul AI' ? <span>Soul AI</span> : <span>You</span>}
+                    </Typography>
+                  </Box>
 
-                <p style={{ margin: '6px 0 8px 0', lineHeight: 1.5 }}>
-                  {msg.text}
-                </p>
+                  <p style={{ margin: '0 0 8px 0', lineHeight: 1.5, fontSize: '1.05rem' }}>
+                    {msg.text}
+                  </p>
 
-                <Typography variant="caption" color="text.secondary">
-                  {msg.time}
-                </Typography>
-              </Paper>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="caption" color="text.secondary">
+                      {msg.time}
+                    </Typography>
+
+                    {msg.role === 'Soul AI' && (
+                      <Box sx={{ display: 'flex', gap: 0.5 }}>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleThumbsFeedback(index, 'like')}
+                          sx={{ color: 'grey.600', '&:hover': { color: 'success.main' } }}
+                        >
+                          <FaThumbsUp size={18} />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleThumbsFeedback(index, 'dislike')}
+                          sx={{ color: 'grey.600', '&:hover': { color: 'error.main' } }}
+                        >
+                          <FaThumbsDown size={18} />
+                        </IconButton>
+                      </Box>
+                    )}
+                  </Box>
+                </Paper>
+              </Box>
             ))}
             <div ref={scrollRef} />
           </Stack>
         )}
       </Box>
 
-      {/* Input form */}
+      {/* Input + buttons */}
       <Box component="form" onSubmit={handleAsk}>
         <Stack direction="row" spacing={1.5} alignItems="center">
           <TextField
@@ -154,17 +244,28 @@ const ChatPage = () => {
             type="submit"
             variant="contained"
             endIcon={<SendIcon />}
-            sx={{ bgcolor: '#D7C7F4', color: '#000', minWidth: 100 }}
+            sx={{
+              bgcolor: '#9747FF',
+              color: 'white',
+              minWidth: 100,
+              py: 1.5,
+            }}
             disabled={!input.trim()}
           >
             Ask
           </Button>
 
           <Button
+            type="button"
             variant="outlined"
             onClick={handleSave}
             disabled={chatLog.length === 0}
-            sx={{ minWidth: 100 }}
+            sx={{
+              minWidth: 100,
+              py: 1.5,
+              borderColor: '#9747FF',
+              color: '#9747FF',
+            }}
           >
             Save
           </Button>
@@ -179,6 +280,4 @@ const ChatPage = () => {
       />
     </Container>
   );
-};
-
-export default ChatPage;
+}

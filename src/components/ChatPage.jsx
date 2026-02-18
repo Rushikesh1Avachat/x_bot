@@ -12,9 +12,9 @@ import {
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
-import PersonIcon from '@mui/icons-material/Person';
 import data from '../api/data.json';
 import FeedbackModal from '../components/FeedbackModal';
+import ChatBubble from '../components/ChatBubble';
 
 const DEFAULT_RESPONSE = "Sorry, Did not understand your query!";
 
@@ -22,24 +22,18 @@ export default function ChatPage() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
-  const scrollRef = useRef(null);
+  const endRef = useRef(null);
 
-  // Welcome message on mount
   useEffect(() => {
     if (messages.length === 0) {
       setMessages([
-        {
-          id: 'welcome',
-          role: 'Soul AI',
-          text: 'How Can I Help You Today?',
-        },
+        { role: 'Soul AI', text: 'How Can I Help You Today?' },
       ]);
     }
   }, []);
 
-  // Auto-scroll
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
+    endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const handleAsk = (e) => {
@@ -49,22 +43,15 @@ export default function ChatPage() {
     const userText = input.trim();
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    setMessages((prev) => [
-      ...prev,
-      { role: 'You', text: userText, time },
-    ]);
+    setMessages(prev => [...prev, { role: 'You', text: userText, time }]);
 
-    // Exact match (trim + lowercase)
-    const found = data.find(
-      (item) => item.question.trim().toLowerCase() === userText.toLowerCase().trim()
+    const found = data.find(item => 
+      item.question.trim().toLowerCase() === userText.toLowerCase().trim()
     );
 
-    const botText = found ? found.response : DEFAULT_RESPONSE;
+    const botReply = found ? found.response : DEFAULT_RESPONSE;
 
-    setMessages((prev) => [
-      ...prev,
-      { role: 'Soul AI', text: botText, time },
-    ]);
+    setMessages(prev => [...prev, { role: 'Soul AI', text: botReply, time }]);
 
     setInput('');
   };
@@ -75,8 +62,7 @@ export default function ChatPage() {
   };
 
   const handleFeedbackSubmit = ({ rating, comment }) => {
-    const firstUser = messages.find((m) => m.role === 'You')?.text || '';
-    const title = firstUser.slice(0, 40) + (firstUser.length > 40 ? '...' : '') || 'New Chat';
+    const title = messages.find(m => m.role === 'You')?.text?.slice(0, 40) || 'New Chat';
 
     const session = {
       id: Date.now(),
@@ -89,47 +75,48 @@ export default function ChatPage() {
     const prev = JSON.parse(localStorage.getItem('conversations') || '[]');
     localStorage.setItem('conversations', JSON.stringify([session, ...prev]));
 
-    // Reset chat (New Chat effect)
     setMessages([]);
     setModalOpen(false);
   };
 
+  const handleThumbs = (id, type) => {
+    console.log(`Thumbs ${type} on ${id}`);
+  };
+
   return (
-    <Container maxWidth="md" sx={{ height: '100%', display: 'flex', flexDirection: 'column', py: 3 }}>
-      {/* Welcome + suggestions */}
+    <Container maxWidth="md" sx={{ height: '100%', py: 4, px: { xs: 2, md: 4 } }}>
       {messages.length <= 1 ? (
-        <Box textAlign="center" mt={6}>
-          <Avatar
-            sx={{ width: 100, height: 100, mx: 'auto', mb: 3, bgcolor: '#9747FF' }}
-          >
+        <Box textAlign="center" mt={8}>
+          <Avatar sx={{ width: 100, height: 100, mx: 'auto', mb: 3, bgcolor: '#9747FF' }}>
             <SmartToyIcon fontSize="large" />
           </Avatar>
-
-          <Typography variant="h4" fontWeight="bold" gutterBottom>
+          <Typography variant="h4" fontWeight="bold" gutterBottom sx={{ color: '#333' }}>
             How Can I Help You Today?
           </Typography>
 
-          <Grid container spacing={2} justifyContent="center" mt={4}>
+          <Grid container spacing={2} justifyContent="center" mt={5}>
             {[
               "Hi, what is the weather",
               "Hi, what is my location",
               "Hi, what is the temperature",
-              "Hi, how are you",
+              "Hi, how are you"
             ].map((q, i) => (
               <Grid item xs={12} sm={6} key={i}>
                 <Paper
                   elevation={3}
                   sx={{
                     p: 3,
+                    borderRadius: 3,
                     cursor: 'pointer',
-                    '&:hover': { transform: 'translateY(-4px)', boxShadow: 6 },
+                    transition: 'all 0.2s',
+                    '&:hover': { transform: 'translateY(-6px)', boxShadow: 8 },
                   }}
                   onClick={() => setInput(q)}
                 >
                   <Typography variant="subtitle1" fontWeight="bold">
                     {q}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
                     Get immediate AI generated response
                   </Typography>
                 </Paper>
@@ -138,64 +125,35 @@ export default function ChatPage() {
           </Grid>
         </Box>
       ) : (
-        <Box sx={{ flex: 1, overflowY: 'auto', mb: 3 }}>
-          <Stack spacing={2.5}>
+        <Box sx={{ flex: 1, overflowY: 'auto', mb: 4 }}>
+          <Stack spacing={3}>
             {messages.map((msg, i) => (
-              <Box
+              <ChatBubble
                 key={i}
-                sx={{
-                  alignSelf: msg.role === 'You' ? 'flex-end' : 'flex-start',
-                  maxWidth: '82%',
-                }}
-              >
-                <Paper
-                  sx={{
-                    p: 2,
-                    bgcolor: msg.role === 'You' ? '#f0f0f0' : '#D7C7F433',
-                    borderRadius:
-                      msg.role === 'You' ? '16px 16px 0 16px' : '16px 16px 16px 0',
-                  }}
-                >
-                  <Typography variant="subtitle2" fontWeight="bold">
-                    {msg.role === 'Soul AI' ? <span>Soul AI</span> : <span>You</span>}
-                  </Typography>
-
-                  {msg.role === 'Soul AI' ? (
-                    <p style={{ margin: '6px 0 8px 0', lineHeight: 1.5 }}>
-                      {msg.text}
-                    </p>
-                  ) : (
-                    <Typography variant="body1" sx={{ mt: 0.5 }}>
-                      {msg.text}
-                    </Typography>
-                  )}
-
-                  <Typography variant="caption" color="text.secondary">
-                    {msg.time}
-                  </Typography>
-                </Paper>
-              </Box>
+                message={{ ...msg, id: i }}
+                onFeedback={handleThumbs}
+              />
             ))}
-            <div ref={scrollRef} />
+            <div ref={endRef} />
           </Stack>
         </Box>
       )}
 
-      {/* Input form */}
       <Box component="form" onSubmit={handleAsk}>
-        <Stack direction="row" spacing={1.5} alignItems="center">
+        <Stack direction="row" spacing={2} alignItems="center">
           <TextField
             fullWidth
             placeholder="Message Bot AI…"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             variant="outlined"
+            sx={{ bgcolor: 'white' }}
           />
           <Button
             type="submit"
             variant="contained"
             endIcon={<SendIcon />}
-            sx={{ bgcolor: '#D7C7F4', color: '#000', minWidth: 100 }}
+            sx={{ bgcolor: '#9747FF', minWidth: 100, py: 1.5 }}
             disabled={!input.trim()}
           >
             Ask
@@ -205,7 +163,7 @@ export default function ChatPage() {
             variant="outlined"
             onClick={handleSave}
             disabled={messages.length < 2}
-            sx={{ minWidth: 100 }}
+            sx={{ minWidth: 100, py: 1.5 }}
           >
             Save
           </Button>
