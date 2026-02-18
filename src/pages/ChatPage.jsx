@@ -1,127 +1,203 @@
-import React, { useState, useEffect } from "react";
-import { Box, TextField, Button, Stack, Container, Typography, Grid, Paper } from "@mui/material";
+import { useState, useEffect, useRef } from "react";
+import data from "../api/data.json";
 import ChatBubble from "../components/ChatBubble";
-import FeedbackModal from "../components/FeedbackModal"; 
-import mockData from "../api/data.json";
+import FeedbackModal from "../components/FeedbackModal";
+import {
+  Box,
+  Button,
+  Grid,
+  Paper,
+  Typography,
+  TextField,
+  Stack,
+} from "@mui/material";
 
-const ChatPage = ({ onSave }) => {
+const predefinedQuestions = [
+  "Hi, what is the weather",
+  "Hi, what is my location",
+  "Hi, what is the temperature",
+  "Hi, how are you",
+];
+
+const ChatPage = () => {
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  const [chatLog, setChatLog] = useState([]);
-  
-  // Modal State - removed selectedMessage to clear ESLint warning
-  const [openModal, setOpenModal] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [currentBotIndex, setCurrentBotIndex] = useState(null);
+  const chatEndRef = useRef(null);
 
-  useEffect(() => {
-    const activeSession = JSON.parse(localStorage.getItem("active_chat")) || [];
-    setChatLog(activeSession);
-  }, []);
+  // Time helper
+  const getTime = () =>
+    new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
-  const handleAsk = (e) => {
-    e?.preventDefault();
-    if (!input.trim()) return;
+  // Bot response finder
+  const getBotResponse = (question) => {
+    const found = data.find(
+      (item) =>
+        item.question.toLowerCase().trim() ===
+        question.toLowerCase().trim()
+    );
 
-    const found = mockData.find(item => item.question.toLowerCase().trim() === input.toLowerCase().trim());
-    
-    const botResponse = found ? found.response : "Sorry, Did not understand your query!";
+    return found
+      ? found.response
+      : "Sorry, Did not understand your query!";
+  };
 
-    const userMsg = { role: "You", text: input, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
-    const botMsg = { role: "Soul AI", text: botResponse, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+  // Common ask handler (for input + predefined)
+  const handleAsk = (questionText) => {
+    const question = questionText || input;
+    if (!question.trim()) return;
 
-    const newLog = [...chatLog, userMsg, botMsg];
-    setChatLog(newLog);
-    localStorage.setItem("active_chat", JSON.stringify(newLog)); 
+    const userMessage = {
+      sender: "user",
+      text: question,
+      time: getTime(),
+    };
+
+    const botMessage = {
+      sender: "bot",
+      text: getBotResponse(question),
+      time: getTime(),
+      feedback: null,
+      rating: 0,
+      subjective: "",
+    };
+
+    setMessages((prev) => [...prev, userMessage, botMessage]);
     setInput("");
   };
 
-  const handleSaveClick = () => {
-    if (chatLog.length === 0) return;
-    setOpenModal(true);
-  };
+  // Save conversation
+  const handleSave = () => {
+    if (messages.length === 0) return;
 
-  const handleSubmitFeedback = (feedbackData) => {
-    const existingHistory = JSON.parse(localStorage.getItem("conversations")) || [];
-    
-    const newSession = {
+    const history =
+      JSON.parse(localStorage.getItem("conversations")) || [];
+
+    const newConversation = {
       id: Date.now(),
-      messages: chatLog, 
-      feedback: feedbackData 
+      createdAt: new Date().toLocaleString(),
+      messages,
     };
 
-    localStorage.setItem("conversations", JSON.stringify([newSession, ...existingHistory]));
+    localStorage.setItem(
+      "conversations",
+      JSON.stringify([newConversation, ...history])
+    );
 
-    // Reset current state
-    setChatLog([]);
-    localStorage.removeItem("active_chat");
-    setOpenModal(false);
-    
-    // Call the parent onSave if it exists
-    if (onSave) onSave(newSession);
+    setMessages([]);
   };
 
+  // Auto scroll
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   return (
-    <Container sx={{ display: 'flex', flexDirection: 'column', height: '85vh', py: 2 }}>
-      <Box sx={{ flexGrow: 1, overflowY: "auto", mb: 2 }}>
-        {chatLog.length === 0 ? (
-          <Box textAlign="center" mt={10}>
-            <Typography variant="h4" sx={{ fontFamily: 'Ubuntu', fontWeight: 'bold', mb: 4 }}>
-              How Can I Help You Today?
-            </Typography>
-            <Grid container spacing={2}>
-              {mockData.map((item, i) => (
-                <Grid item xs={12} sm={6} key={i}>
-                  <Paper 
-                    elevation={1} 
-                    sx={{ p: 2, cursor: 'pointer', '&:hover': { bgcolor: '#f3f0ff' } }} 
-                    onClick={() => setInput(item.question)}
-                  >
-                    <Typography fontWeight="bold">{item.question}</Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Get immediate AI generated response
-                    </Typography>
-                  </Paper>
-                </Grid>
-              ))}
+    <Box
+      p={3}
+      display="flex"
+      flexDirection="column"
+      height="85vh"
+    >
+      <Typography variant="h6" textAlign="center" mb={3}>
+        How Can I Help You Today?
+      </Typography>
+
+      {/* 4 Predefined Questions */}
+      {messages.length === 0 && (
+        <Grid container spacing={2} mb={3}>
+          {predefinedQuestions.map((q, index) => (
+            <Grid item xs={12} sm={6} key={index}>
+              <Paper
+                elevation={3}
+                sx={{
+                  p: 2,
+                  cursor: "pointer",
+                  "&:hover": { backgroundColor: "#f5f5f5" },
+                }}
+                onClick={() => handleAsk(q)}
+              >
+                <Typography fontWeight="bold">{q}</Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                >
+                  Get immediate AI generated response
+                </Typography>
+              </Paper>
             </Grid>
-          </Box>
-        ) : (
-          <Stack spacing={2}>
-            {chatLog.map((msg, i) => (
-              <ChatBubble key={i} message={msg} onFeedback={() => {}} />
-            ))}
-          </Stack>
-        )}
+          ))}
+        </Grid>
+      )}
+
+      {/* Chat Area */}
+      <Box flexGrow={1} overflow="auto" mb={2}>
+        {messages.map((msg, index) => (
+          <ChatBubble
+            key={index}
+            message={msg}
+            onFeedback={(type) => {
+              if (msg.sender !== "bot") return;
+
+              const updated = [...messages];
+              updated[index].feedback = type;
+              setMessages(updated);
+
+              setCurrentBotIndex(index);
+              setModalOpen(true);
+            }}
+          />
+        ))}
+        <div ref={chatEndRef} />
       </Box>
 
-      <Box component="form" onSubmit={handleAsk} sx={{ display: 'flex', gap: 1 }}>
-        <TextField 
-          fullWidth 
-          value={input} 
-          onChange={(e) => setInput(e.target.value)} 
-          placeholder="Type a message..." 
+      {/* Input + Ask + Save */}
+      <Stack direction="row" spacing={1}>
+        <TextField
+          fullWidth
+          placeholder="Type your question..."
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleAsk();
+          }}
         />
-        <Button 
-          variant="contained" 
-          type="submit" 
-          sx={{ bgcolor: '#D7C7F4', color: '#000', '&:hover': { bgcolor: '#af9cf3' } }}
+        <Button
+          variant="contained"
+          onClick={() => handleAsk()}
         >
           Ask
         </Button>
-        <Button 
-          variant="contained" 
-          onClick={handleSaveClick} 
-          sx={{ bgcolor: '#D7C7F4', color: '#000' }}
+        <Button
+          variant="outlined"
+          onClick={handleSave}
         >
           Save
         </Button>
-      </Box>
+      </Stack>
 
-      <FeedbackModal 
-        open={openModal} 
-        onClose={() => setOpenModal(false)} 
-        onSubmit={handleSubmitFeedback} 
+      {/* Feedback Modal */}
+      <FeedbackModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSubmit={({ rating, subjective }) => {
+          const updated = [...messages];
+          updated[currentBotIndex].rating = rating;
+          updated[currentBotIndex].subjective =
+            subjective;
+
+          setMessages(updated);
+          setModalOpen(false);
+        }}
       />
-    </Container>
+    </Box>
   );
 };
 
 export default ChatPage;
+
+

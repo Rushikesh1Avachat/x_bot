@@ -1,40 +1,67 @@
-// src/components/FeedbackModal.jsx
-import React, { useState } from 'react';
-import { Modal, Box, Typography, TextField, Button, Rating, Stack, IconButton } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import LightbulbOutlinedIcon from '@mui/icons-material/LightbulbOutlined';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+  Rating,
+  Box,
+} from "@mui/material";
+import { useState, useEffect } from "react";
 
 const FeedbackModal = ({ open, onClose, onSubmit }) => {
   const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState("");
+  const [subjective, setSubjective] = useState("");
 
-  const handleSave = () => {
-    onSubmit({ rating, comment });
-    setRating(0);
-    setComment("");
+  useEffect(() => {
+    if (!open) {
+      setRating(0);
+      setSubjective("");
+    }
+  }, [open]);
+
+  const handleSubmit = () => {
+    onSubmit({ rating, subjective });
   };
 
   return (
-    <Modal open={open} onClose={onClose}>
-      <Box sx={{
-        position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-        width: 400, bgcolor: '#FAF7FF', p: 3, borderRadius: 4, boxShadow: 24
-      }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <LightbulbOutlinedIcon fontSize="small" />
-            <Typography variant="h6" sx={{ fontFamily: 'Ubuntu' }}>Provide Additional Feedback</Typography>
-          </Stack>
-          <IconButton onClick={onClose}><CloseIcon /></IconButton>
-        </Stack>
-        <Rating value={rating} onChange={(e, val) => setRating(val)} sx={{ mb: 2 }} />
-        <TextField fullWidth multiline rows={4} placeholder="Write your feedback..." value={comment} onChange={(e) => setComment(e.target.value)} sx={{ bgcolor: 'white' }} />
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-          <Button variant="contained" onClick={handleSave} sx={{ bgcolor: '#D7C7F4', color: 'black' }}>Submit</Button>
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle>Provide Additional Feedback</DialogTitle>
+
+      <DialogContent>
+        <Box mb={2}>
+          <Rating
+            value={rating}
+            onChange={(e, newValue) => setRating(newValue)}
+          />
         </Box>
-      </Box>
-    </Modal>
+
+        <TextField
+          fullWidth
+          multiline
+          rows={4}
+          placeholder="Write your feedback..."
+          value={subjective}
+          onChange={(e) => setSubjective(e.target.value)}
+        />
+      </DialogContent>
+
+      <DialogActions>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button
+          variant="contained"
+          sx={{ bgcolor: "#D7C7F4", color: "#000" }}
+          onClick={handleSubmit}
+        >
+          Submit
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };
+
 export default FeedbackModal;
+
+
 

@@ -1,32 +1,36 @@
-import React from "react";
-import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Box, Button, Typography } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 const Layout = ({ children }) => {
+  const navigate = useNavigate();
+
   return (
-    <>
-      <header>
-        <AppBar position="static" sx={{ bgcolor: '#D7C7F4', color: '#000' }}>
-          <Toolbar>
-            <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold', fontFamily: 'Ubuntu' }}>
-              Bot AI
-            </Typography>
+    <Box sx={{ display: "flex", height: "100vh" }}>
+      <Box sx={{ width: 250, bgcolor: "#f3e8ff", p: 2 }}>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          Bot AI
+        </Typography>
 
-            <Button component={Link} to="/" variant="text" sx={{ color: 'inherit', mr: 2 }}>
-              New Chat
-            </Button>
+        <Button
+          variant="contained"
+          fullWidth
+          sx={{ mb: 2 }}
+          onClick={() => navigate("/")}
+        >
+          New Chat
+        </Button>
 
-            <Button component={Link} to="/history" variant="text" sx={{ color: 'inherit' }}>
-              Past Conversations
-            </Button>
-          </Toolbar>
-        </AppBar>
-      </header>
-
-      <Box sx={{ p: { xs: 2, md: 4 } }}>
-        {children}
+        <Button
+          variant="outlined"
+          fullWidth
+          onClick={() => navigate("/history")}
+        >
+          Past Conversations
+        </Button>
       </Box>
-    </>
+
+      <Box sx={{ flex: 1, p: 3 }}>{children}</Box>
+    </Box>
   );
 };
 
