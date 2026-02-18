@@ -23,18 +23,26 @@ export default function ChatPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const endRef = useRef(null);
 
-useEffect(() => {
+  // Welcome message – run only if chat is empty (no useEffect needed)
   if (messages.length === 0) {
-    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setMessages([{ role: 'Soul AI', text: 'How Can I Help You Today?', time }]);
-  }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, []);
+    const time = new Date().toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
 
-  // Auto-scroll to bottom when number of messages changes
+    setMessages([
+      {
+        role: 'Soul AI',
+        text: 'How Can I Help You Today?',
+        time,
+      },
+    ]);
+  }
+
+  // Auto-scroll – this one is fine as-is (or add [messages.length] if you want)
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages.length]); // ← fixed: added messages.length to deps
+  }, [messages.length]);
 
   const handleAsk = (e) => {
     e.preventDefault();
@@ -43,17 +51,14 @@ useEffect(() => {
     const userText = input.trim();
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    // Add user message
     setMessages((prev) => [...prev, { role: 'You', text: userText, time }]);
 
-    // Find matching response (case-insensitive + trimmed)
     const found = mockData.find(
       (item) => item.question.trim().toLowerCase() === userText.toLowerCase().trim()
     );
 
     const botReply = found ? found.response : DEFAULT_RESPONSE;
 
-    // Add bot response
     setMessages((prev) => [...prev, { role: 'Soul AI', text: botReply, time }]);
 
     setInput('');
@@ -78,7 +83,6 @@ useEffect(() => {
     const prev = JSON.parse(localStorage.getItem('conversations') || '[]');
     localStorage.setItem('conversations', JSON.stringify([session, ...prev]));
 
-    // Reset chat after save
     setMessages([]);
     setModalOpen(false);
   };
@@ -96,7 +100,6 @@ useEffect(() => {
       }}
     >
       {messages.length <= 1 ? (
-        // Welcome / suggestion screen
         <Box
           sx={{
             flex: 1,
@@ -173,7 +176,6 @@ useEffect(() => {
           </Grid>
         </Box>
       ) : (
-        // Chat messages
         <Stack spacing={3} sx={{ mb: 4 }}>
           {messages.map((msg, i) => (
             <Box
@@ -209,7 +211,6 @@ useEffect(() => {
         </Stack>
       )}
 
-      {/* Input + buttons */}
       <Box
         component="form"
         onSubmit={handleAsk}
