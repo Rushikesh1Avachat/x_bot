@@ -1,50 +1,61 @@
-import React from 'react';
-import { Box, Typography, Paper, Rating } from '@mui/material';
-import ChatBubble from '../components/ChatBubble';
+import React from "react";
+import { Box, Typography, Stack, Paper, Avatar } from "@mui/material";
 
 const HistoryPage = () => {
-  // Requirement 1 & 2
-  const history = JSON.parse(localStorage.getItem("soul_history") || "[]");
+  // Requirement 3: Ensure data is pulled from localStorage for persistence
+  const historySessions = JSON.parse(localStorage.getItem("conversations")) || [];
 
   return (
-    <Box sx={{ p: 4, bgcolor: '#FAF9FF', minHeight: '100vh', overflowY: 'auto' }}>
-      <Typography variant="h4" align="center" sx={{ mb: 4 }}>Conversation History</Typography>
-      
-      <Box sx={{ maxWidth: '1000px', mx: 'auto' }}>
-        <Typography variant="h6" sx={{ mb: 3 }}>Today's Chats</Typography>
-        
-        {history.length === 0 ? (
-          <Typography align="center" color="textSecondary">No history found.</Typography>
-        ) : (
-          [...history].reverse().map((session) => (
-            <Paper key={session.id} sx={{ p: 3, mb: 4, borderRadius: '20px', border: '1px solid #E0E0E0' }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {session.chat.map((msg, i) => (
-                  <ChatBubble key={i} message={msg} onFeedback={() => {}} />
-                ))}
-              </Box>
+    <Box sx={{ p: 4, bgcolor: "#FBFAD21A", minHeight: "100vh" }}>
+      <Typography variant="h4" sx={{ fontFamily: 'Ubuntu', fontWeight: 700, textAlign: 'center', mb: 4 }}>
+        Conversation History
+      </Typography>
 
-              {/* Feedback and Rating */}
-              <Box sx={{ mt: 3, p: 2, bgcolor: 'rgba(255, 255, 255, 0.6)', borderRadius: '15px', border: '1px dashed #D7C7F4' }}>
-                {session.rating > 0 && (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="body2" fontWeight="bold">Rating:</Typography>
-                    <Rating value={session.rating} readOnly size="small" />
+      {historySessions.length === 0 ? (
+        // Requirement: Show "No conversations yet" when empty
+        <Typography sx={{ textAlign: 'center', mt: 10 }}>No conversations yet.</Typography>
+      ) : (
+        <Stack spacing={4} sx={{ maxWidth: 800, mx: 'auto' }}>
+          <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>Past Conversations</Typography>
+          
+          {historySessions.map((session, sIdx) => (
+            // Only render if session and messages exist to prevent the 'map' error
+            session && session.messages ? (
+              <Paper key={session.id || sIdx} sx={{ 
+                p: 3, 
+                borderRadius: '20px', 
+                background: 'linear-gradient(90deg, #BFABE2 0%, #DADAFA 100%)',
+                boxShadow: '0px 4px 10px rgba(0,0,0,0.05)'
+              }}>
+                <Stack spacing={3}>
+                  {session.messages.map((msg, mIdx) => (
+                    <Stack key={mIdx} direction="row" spacing={2} alignItems="flex-start">
+                      <Avatar sx={{ bgcolor: msg.role === "You" ? '#9747FF' : '#D7C7F4' }}>
+                        {msg.role === "You" ? "U" : "AI"}
+                      </Avatar>
+                      <Box>
+                        <Typography fontWeight="bold" variant="body2">{msg.role}</Typography>
+                        <Typography variant="body1">{msg.text}</Typography>
+                        <Typography variant="caption" color="text.secondary">{msg.time}</Typography>
+                      </Box>
+                    </Stack>
+                  ))}
+                </Stack>
+
+                {session.feedback && session.feedback.comment && (
+                  <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid rgba(0,0,0,0.1)' }}>
+                    <Typography variant="body2">
+                      <strong>Feedback:</strong> {session.feedback.comment}
+                    </Typography>
                   </Box>
                 )}
-                {session.feedback && (
-                  <Typography variant="body2" sx={{ mt: 1 }}>
-                    <span style={{ fontWeight: 'bold' }}>Feedback: </span>{session.feedback}
-                  </Typography>
-                )}
-              </Box>
-            </Paper>
-          ))
-        )}
-      </Box>
+              </Paper>
+            ) : null // Skip old/invalid data formats
+          ))}
+        </Stack>
+      )}
     </Box>
   );
 };
 
 export default HistoryPage;
-
