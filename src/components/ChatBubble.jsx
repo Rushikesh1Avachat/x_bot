@@ -1,4 +1,4 @@
-import { Box, Typography, IconButton } from "@mui/material";
+import { Box,  IconButton } from "@mui/material";
 import { FaThumbsUp, FaThumbsDown } from "react-icons/fa";
 import { useState } from "react";
 
