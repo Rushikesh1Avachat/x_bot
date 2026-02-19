@@ -1,61 +1,43 @@
 export const sampleData = {
-  "What are RESTful APIs?":
+  "What's the difference between GET and POST requests?":
+    "GET requests are used to retrieve data from the server, and are visible in the URL. POST requests are used to send data to the server to create/update resources, and the data is included in the body of the request, not visible in the URL.",
+
+  "Can you explain RESTful APIs?":
     "RESTful APIs are designed around the REST (Representational State Transfer) architecture, which uses HTTP requests to access and manipulate data. They follow a stateless, client-server, cacheable communications protocol.",
 
-  "What is the weather":
-    "The weather is sunny today.",
+  "What is a Promise in JavaScript?":
+    "A Promise in JavaScript is an object representing the eventual completion or failure of an asynchronous operation. It allows you to write asynchronous code that is more readable and efficient.",
 
-  "What is my location":
-    "You are currently in Mumbai.",
+  "How do you handle errors in async/await?":
+    "Errors in async/await can be handled using try/catch blocks. You wrap your await call inside a try block, and catch any errors that occur in the catch block.",
 
-  "How are you":
-    "I am functioning properly!",
+  "What is the virtual DOM?":
+    "The virtual DOM is a concept used in web development, primarily with libraries like React. It's a lightweight copy of the real DOM, allowing for efficient updates and rendering of the UI by minimizing direct manipulations of the DOM.",
 
-  "Why use object instead of array for chatbot data?":
-    "Objects provide constant time O(1) lookup using keys, whereas arrays require iteration O(n) to find matching data.",
+  "Can you describe how CORS works?":
+    "CORS, or Cross-Origin Resource Sharing, is a mechanism that allows restricted resources on a web page to be requested from another domain outside the domain from which the first resource was served.",
 
-  "What is time complexity of object lookup?":
-    "Accessing a value using an object key typically takes O(1) average time due to hash-based implementation.",
+  "What are microservices?":
+    "Microservices are an architectural style that structures an application as a collection of small, autonomous services modeled around a business domain.",
 
-  "What is case insensitive search?":
-    "Case insensitive search converts both input and stored keys to a common format such as lowercase before comparison.",
+  "Explain the concept of state management in React.":
+    "State management in React involves tracking changes to the state of components using built-in hooks or external libraries like Redux.",
 
-  "What happens if JSON has duplicate keys?":
-    "Duplicate JSON keys are not allowed and the last key occurrence overwrites previous values.",
+  "What is a JWT and how is it used?":
+    "JWT, or JSON Web Token, is a compact token used for authentication and secure information exchange.",
 
-  "What is fuzzy search?":
-    "Fuzzy search finds approximate matches using similarity algorithms such as Levenshtein distance instead of exact matching.",
+  "How do you optimize website performance?":
+    "Website performance can be optimized through minimizing HTTP requests, caching, CDN usage, code splitting, and asset optimization.",
 
-  "What is difference between Map and Object?":
-    "Map allows any data type as key and maintains insertion order, while Object primarily uses string or symbol keys.",
+  "Hi, how are you":
+    "Hello! I'm just a computer program, but I'm here and ready to assist you.",
 
-  "Why JSON used for configuration?":
-    "JSON is lightweight, human readable, language independent, and easily parsed into JavaScript objects.",
+  "Hi, what is the weather":
+    "I'm sorry, but I can't provide real-time weather updates. Please check a weather app.",
 
-  "What are limitations of static JSON chatbot?":
-    "Static JSON lacks scalability, personalization, context awareness, and real-time learning capability.",
+  "Hi, what is my location":
+    "As an AI, I don't have access to your location information.",
 
-  "Where should static data live in React project?":
-    "Static data should be stored inside dedicated folders such as data, constants, or mocks to maintain separation of concerns.",
-
-  "How to lazy load large JSON?":
-    "Large JSON files can be lazy loaded using dynamic import or fetched asynchronously to reduce bundle size.",
-
-  "How to prevent re render due to static data?":
-    "Place static data outside components or memoize it using useMemo to avoid recreation during renders.",
-
-  "How to cache chatbot responses?":
-    "Responses can be cached using localStorage, service workers, memoization, or backend caching systems like Redis.",
-
-  "What is versioning in JSON data?":
-    "Versioning involves adding version identifiers to JSON data to manage updates and prevent cache inconsistencies.",
-
-  "How to internationalize chatbot responses?":
-    "Maintain language specific JSON files and switch between them using i18n libraries.",
-
-  "How to store formatted chatbot responses?":
-    "Formatted responses can be stored as Markdown or sanitized HTML and rendered using markdown or HTML parsers.",
-
-  "How to scale static chatbot to millions of users?":
-    "Scaling requires backend APIs, NLP models, distributed caching, vector databases, and cloud infrastructure."
+  "Hi, what is the temperature":
+    "I'm sorry, but I can't provide real-time temperature updates."
 };
