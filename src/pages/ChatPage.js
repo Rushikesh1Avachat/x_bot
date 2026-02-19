@@ -10,28 +10,28 @@ function ChatPage() {
   const normalize = (str) =>
     str.toLowerCase().replace(/[^\w\s]/g, "").trim();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!input.trim()) return;
+const handleSubmit = (e) => {
+  e.preventDefault();
+  if (!input.trim()) return;
 
-    const userMessage = { sender: "user", text: input };
+  const userMessage = { sender: "user", text: input };
 
-    // ⭐ normalized matching
-    const normalizedInput = normalize(input);
+  // Normalize input to find the key regardless of casing
+  const normalizedInput = input.trim().toLowerCase();
+  const matchKey = Object.keys(sampleData).find(
+    (key) => key.toLowerCase() === normalizedInput
+  );
 
-    const key = Object.keys(sampleData).find(
-      (k) => normalize(k) === normalizedInput
-    );
+  // Retrieve matching response or the exact fallback string required by Cypress
+  const reply = matchKey 
+    ? sampleData[matchKey] 
+    : "As an AI Language Model, I don't have the details";
 
-    const reply = key
-      ? sampleData[key]
-      : "Sorry, Did not understand your query!";
+  const botMessage = { sender: "bot", text: reply };
 
-    const botMessage = { sender: "bot", text: reply };
-
-    setMessages((prev) => [...prev, userMessage, botMessage]);
-    setInput("");
-  };
+  setMessages((prev) => [...prev, userMessage, botMessage]);
+  setInput("");
+};
 
   const saveConversation = () => {
     const prev = JSON.parse(localStorage.getItem("chats")) || [];
