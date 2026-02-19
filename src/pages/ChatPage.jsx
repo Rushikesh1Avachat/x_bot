@@ -12,10 +12,10 @@ import {
   IconButton,
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
-import PersonIcon from '@mui/icons-material/Person';          // ← added this
+import PersonIcon from '@mui/icons-material/Person';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
-import ThumbUpIcon from '@mui/icons-material/ThumbUp';      // optional (if using thumbs)
-import ThumbDownIcon from '@mui/icons-material/ThumbDown';  // optional
+import ThumbUpIcon from '@mui/icons-material/ThumbUp';
+import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 import mockData from '../api/data.json';
 import FeedbackModal from '../components/FeedbackModal';
 
@@ -28,24 +28,12 @@ export default function ChatPage() {
   const [hoveredMsgId, setHoveredMsgId] = useState(null);
   const endRef = useRef(null);
 
-  // Welcome message – only once (no useEffect needed)
+  // Welcome message – only once
   if (messages.length === 0) {
-    const time = new Date().toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-
-    setMessages([
-      {
-        id: 'welcome',
-        role: 'Soul AI',
-        text: 'How Can I Help You Today?',
-        time,
-      },
-    ]);
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setMessages([{ id: 'welcome', role: 'Soul AI', text: 'How Can I Help You Today?', time }]);
   }
 
-  // Auto-scroll
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages.length]);
@@ -175,10 +163,10 @@ export default function ChatPage() {
 
                 {msg.role === 'Soul AI' && hoveredMsgId === msg.id && (
                   <Box sx={{ position: 'absolute', bottom: -30, right: 0, display: 'flex', gap: 1 }}>
-                    <IconButton size="small" onClick={() => console.log('Thumbs up')}>
+                    <IconButton size="small" onClick={() => console.log('Like')}>
                       <ThumbUpIcon fontSize="small" />
                     </IconButton>
-                    <IconButton size="small" onClick={() => console.log('Thumbs down')}>
+                    <IconButton size="small" onClick={() => console.log('Dislike')}>
                       <ThumbDownIcon fontSize="small" />
                     </IconButton>
                   </Box>

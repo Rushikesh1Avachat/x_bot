@@ -27,14 +27,20 @@ export default function Layout({ children }) {
 
   const sidebarContent = (
     <Box sx={{ width: drawerWidth, height: '100%', p: 3, bgcolor: '#F8F5FF' }}>
+      {/* Bot AI title – matches Figma exactly */}
       <Typography
         variant="h5"
         fontWeight="bold"
-        sx={{ mb: 6, color: '#9747FF', textAlign: 'center' }}
+        sx={{
+          mb: 6,
+          color: '#9747FF',
+          textAlign: 'center',
+        }}
       >
         Bot AI
       </Typography>
 
+      {/* New Chat – outlined when not active */}
       <Button
         fullWidth
         component={RouterLink}
@@ -53,12 +59,14 @@ export default function Layout({ children }) {
           '&:hover': {
             bgcolor: location.pathname === '/' ? '#7C3AED' : '#F0E8FF',
             borderColor: '#7C3AED',
+            boxShadow: '0 4px 12px rgba(151,71,255,0.15)',
           },
         }}
       >
         New Chat
       </Button>
 
+      {/* Past Conversations – filled purple when active */}
       <Button
         fullWidth
         component={RouterLink}
@@ -76,6 +84,7 @@ export default function Layout({ children }) {
           '&:hover': {
             bgcolor: location.pathname === '/history' ? '#7C3AED' : '#F0E8FF',
             borderColor: '#7C3AED',
+            boxShadow: '0 4px 12px rgba(151,71,255,0.15)',
           },
         }}
       >
@@ -86,32 +95,48 @@ export default function Layout({ children }) {
 
   return (
     <Box sx={{ display: 'flex', height: '100vh' }}>
-      {/* Desktop sidebar */}
+      {/* Desktop sidebar – always visible on large screens */}
       {!isMobile && (
-        <Box sx={{ width: drawerWidth, flexShrink: 0, borderRight: '1px solid #E0D4FF' }}>
+        <Box
+          sx={{
+            width: drawerWidth,
+            flexShrink: 0,
+            borderRight: '1px solid #E0D4FF',
+            bgcolor: '#F8F5FF',
+          }}
+        >
           {sidebarContent}
         </Box>
       )}
 
-      {/* Mobile drawer */}
+      {/* Mobile drawer – slides in */}
       {isMobile && (
         <Drawer
           variant="temporary"
           open={mobileOpen}
           onClose={handleDrawerToggle}
-          sx={{ '& .MuiDrawer-paper': { width: drawerWidth, bgcolor: '#F8F5FF' } }}
+          ModalProps={{ keepMounted: true }}
+          sx={{
+            display: { xs: 'block', md: 'none' },
+            '& .MuiDrawer-paper': { width: drawerWidth, bgcolor: '#F8F5FF' },
+          }}
         >
           {sidebarContent}
         </Drawer>
       )}
 
-      {/* Main content */}
+      {/* Main content area */}
       <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-        {/* Mobile top bar */}
+        {/* Mobile top bar with hamburger */}
         {isMobile && (
           <AppBar position="fixed" sx={{ bgcolor: '#9747FF' }}>
             <Toolbar>
-              <IconButton color="inherit" edge="start" onClick={handleDrawerToggle} sx={{ mr: 2 }}>
+              <IconButton
+                color="inherit"
+                edge="start"
+                onClick={handleDrawerToggle}
+                sx={{ mr: 2 }}
+              >
                 <MenuIcon />
               </IconButton>
               <Typography variant="h6" sx={{ flexGrow: 1 }}>
@@ -121,6 +146,7 @@ export default function Layout({ children }) {
           </AppBar>
         )}
 
+        {/* Page content (ChatPage or HistoryPage) */}
         <Box
           component="main"
           sx={{

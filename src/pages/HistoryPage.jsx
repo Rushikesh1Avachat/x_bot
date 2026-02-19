@@ -42,7 +42,7 @@ export default function HistoryPage() {
         Conversation History
       </Typography>
 
-      {/* Today's Chats section */}
+      {/* Today's Chats subtitle */}
       <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 3 }}>
         Today's Chats
       </Typography>
@@ -55,7 +55,7 @@ export default function HistoryPage() {
             sx={{
               borderRadius: 3,
               overflow: 'hidden',
-              bgcolor: '#F8F5FF', // light purple from Figma
+              bgcolor: '#F8F5FF',
               transition: 'all 0.2s ease',
               '&:hover': {
                 transform: 'translateY(-4px)',
@@ -83,7 +83,7 @@ export default function HistoryPage() {
 
               <Divider sx={{ mb: 2, borderColor: '#E0D4FF' }} />
 
-              {/* Message previews – last 2 messages */}
+              {/* Last 2 messages preview */}
               {conv.messages.slice(-2).map((msg, index) => (
                 <Box key={index} sx={{ mb: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.8 }}>
@@ -94,11 +94,7 @@ export default function HistoryPage() {
                         bgcolor: msg.role === 'You' ? '#FF6B6B' : '#9747FF',
                       }}
                     >
-                      {msg.role === 'You' ? (
-                        <PersonIcon fontSize="small" />
-                      ) : (
-                        <SmartToyIcon fontSize="small" />
-                      )}
+                      {msg.role === 'You' ? <PersonIcon fontSize="small" /> : <SmartToyIcon fontSize="small" />}
                     </Avatar>
 
                     <Typography variant="subtitle2" fontWeight={600}>
@@ -120,7 +116,7 @@ export default function HistoryPage() {
                 </Box>
               ))}
 
-              {/* Feedback display */}
+              {/* Feedback */}
               {conv.feedback && (
                 <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
                   <Rating
