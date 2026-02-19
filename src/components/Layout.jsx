@@ -1,164 +1,82 @@
-import { useState } from 'react';
-import {
-  Box,
-  Drawer,
-  AppBar,
-  Toolbar,
-  Typography,
-  Button,
-  IconButton,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
-
-const drawerWidth = 280;
+import { Box, Drawer, List, ListItem, ListItemButton, ListItemText, Typography, useMediaQuery, IconButton } from "@mui/material";
+import { useNavigate, useLocation } from "react-router-dom";
+import MenuIcon from "@mui/icons-material/Menu";
+import { useState } from "react";
+// Import the image from your assets folder
+import botLogo from "../assets/bot.png";
 
 export default function Layout({ children }) {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useMediaQuery("(max-width:900px)");
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
-
-  const sidebarContent = (
-    <Box sx={{ width: drawerWidth, height: '100%', p: 3, bgcolor: '#F8F5FF' }}>
-      {/* Bot AI title – matches Figma exactly */}
-      <Typography
-        variant="h5"
-        fontWeight="bold"
-        sx={{
-          mb: 6,
-          color: '#9747FF',
-          textAlign: 'center',
+  const sidebar = (
+    <Box sx={{ width: 280, height: "100%", bgcolor: "white" }}>
+      <Box 
+        onClick={() => { navigate("/"); setMobileOpen(false); }}
+        sx={{ 
+          p: 1, 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          bgcolor: '#D7C7EB', 
+          cursor: 'pointer',
+          mb: 2
         }}
       >
-        Bot AI
-      </Typography>
-
-      {/* New Chat – outlined when not active */}
-      <Button
-        fullWidth
-        component={RouterLink}
-        to="/"
-        variant={location.pathname === '/' ? 'contained' : 'outlined'}
-        sx={{
-          mb: 2,
-          py: 1.8,
-          textTransform: 'none',
-          fontWeight: 600,
-          borderRadius: 3,
-          borderColor: '#9747FF',
-          color: location.pathname === '/' ? 'white' : '#9747FF',
-          bgcolor: location.pathname === '/' ? '#9747FF' : 'transparent',
-          borderWidth: 2,
-          '&:hover': {
-            bgcolor: location.pathname === '/' ? '#7C3AED' : '#F0E8FF',
-            borderColor: '#7C3AED',
-            boxShadow: '0 4px 12px rgba(151,71,255,0.15)',
-          },
-        }}
-      >
-        New Chat
-      </Button>
-
-      {/* Past Conversations – filled purple when active */}
-      <Button
-        fullWidth
-        component={RouterLink}
-        to="/history"
-        variant={location.pathname === '/history' ? 'contained' : 'outlined'}
-        sx={{
-          py: 1.8,
-          textTransform: 'none',
-          fontWeight: 600,
-          borderRadius: 3,
-          borderColor: '#9747FF',
-          color: location.pathname === '/history' ? 'white' : '#9747FF',
-          bgcolor: location.pathname === '/history' ? '#9747FF' : 'transparent',
-          borderWidth: 2,
-          '&:hover': {
-            bgcolor: location.pathname === '/history' ? '#7C3AED' : '#F0E8FF',
-            borderColor: '#7C3AED',
-            boxShadow: '0 4px 12px rgba(151,71,255,0.15)',
-          },
-        }}
-      >
-        Past Conversations
-      </Button>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {/* Using the imported image variable here */}
+          <Box 
+            component="img" 
+            src={botLogo} 
+            alt="Bot AI Logo" 
+            sx={{ width: 30, height: 30, borderRadius: '50%' }} 
+          />
+          <Typography variant="h6" sx={{ fontWeight: "400", fontSize: '1rem' }}>
+            New Chat
+          </Typography>
+        </Box>
+        <Box component="span" sx={{ fontSize: '1.2rem' }}>📝</Box>
+      </Box>
+      
+      <List sx={{ px: 1 }}>
+        <ListItem disablePadding>
+          <ListItemButton 
+            onClick={() => { navigate("/history"); setMobileOpen(false); }}
+            sx={{ 
+              bgcolor: location.pathname === "/history" ? "#D7C7EB" : "transparent", 
+              borderRadius: '10px',
+              textAlign: 'center',
+              '&:hover': { bgcolor: '#c4b5d6' }
+            }}
+          >
+            <ListItemText 
+              primary="Past Conversations" 
+              primaryTypographyProps={{ fontWeight: 'bold', fontSize: '0.9rem' }}
+            />
+          </ListItemButton>
+        </ListItem>
+      </List>
     </Box>
   );
 
   return (
-    <Box sx={{ display: 'flex', height: '100vh' }}>
-      {/* Desktop sidebar – always visible on large screens */}
-      {!isMobile && (
-        <Box
-          sx={{
-            width: drawerWidth,
-            flexShrink: 0,
-            borderRight: '1px solid #E0D4FF',
-            bgcolor: '#F8F5FF',
-          }}
-        >
-          {sidebarContent}
-        </Box>
+    <Box sx={{ display: "flex", minHeight: "100vh" }}>
+      {isMobile ? (
+        <>
+          <Box sx={{ p: 1, display: 'flex', alignItems: 'center', width: '100%', position: 'absolute', zIndex: 1 }}>
+            <IconButton onClick={() => setMobileOpen(true)}><MenuIcon /></IconButton>
+            <Typography variant="h5" sx={{ ml: 1, color: "#9c27b0", fontWeight: "bold" }}>Bot AI</Typography>
+          </Box>
+          <Drawer open={mobileOpen} onClose={() => setMobileOpen(false)}>{sidebar}</Drawer>
+        </>
+      ) : (
+        <Box sx={{ borderRight: "1px solid #ddd" }}>{sidebar}</Box>
       )}
-
-      {/* Mobile drawer – slides in */}
-      {isMobile && (
-        <Drawer
-          variant="temporary"
-          open={mobileOpen}
-          onClose={handleDrawerToggle}
-          ModalProps={{ keepMounted: true }}
-          sx={{
-            display: { xs: 'block', md: 'none' },
-            '& .MuiDrawer-paper': { width: drawerWidth, bgcolor: '#F8F5FF' },
-          }}
-        >
-          {sidebarContent}
-        </Drawer>
-      )}
-
-      {/* Main content area */}
-      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-        {/* Mobile top bar with hamburger */}
-        {isMobile && (
-          <AppBar position="fixed" sx={{ bgcolor: '#9747FF' }}>
-            <Toolbar>
-              <IconButton
-                color="inherit"
-                edge="start"
-                onClick={handleDrawerToggle}
-                sx={{ mr: 2 }}
-              >
-                <MenuIcon />
-              </IconButton>
-              <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                Bot AI
-              </Typography>
-            </Toolbar>
-          </AppBar>
-        )}
-
-        {/* Page content (ChatPage or HistoryPage) */}
-        <Box
-          component="main"
-          sx={{
-            flexGrow: 1,
-            p: { xs: 2, md: 4 },
-            mt: isMobile ? '64px' : 0,
-            overflowY: 'auto',
-            bgcolor: '#F9F9FB',
-          }}
-        >
-          {children}
-        </Box>
+      <Box sx={{ flexGrow: 1, p: 3, mt: isMobile ? 6 : 0, bgcolor: "#FBF7FF" }}>
+        {!isMobile && <Typography variant="h4" sx={{ color: "#9c27b0", fontWeight: "bold", mb: 3 }}>Bot AI</Typography>}
+        {children}
       </Box>
     </Box>
   );

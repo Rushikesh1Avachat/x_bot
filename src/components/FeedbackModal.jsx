@@ -1,52 +1,86 @@
-import { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
-  Button,
   TextField,
+  Button,
   Rating,
   Box,
-} from '@mui/material';
+  Typography,
+} from "@mui/material";
+import { useState } from "react";
+import LightbulbIcon from '@mui/icons-material/Lightbulb';
 
-export default function FeedbackModal({ open, onClose, onSubmit }) {
+const FeedbackModal = ({ open, onClose, onSubmit }) => {
   const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState('');
+  const [comment, setComment] = useState("");
 
   const handleSubmit = () => {
     onSubmit({ rating, comment });
+    // Reset state for the next conversation
     setRating(0);
-    setComment('');
+    setComment("");
     onClose();
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
-      <DialogTitle>Provide Feedback</DialogTitle>
+    <Dialog 
+      open={open} 
+      onClose={onClose}
+      PaperProps={{
+        sx: { borderRadius: 4, p: 2, width: '400px' }
+      }}
+    >
+      <Box sx={{ display: 'flex', alignItems: 'center', px: 3, pt: 2 }}>
+        <LightbulbIcon sx={{ color: '#FFD700', mr: 1 }} />
+        <Typography variant="h6">Provide Feedback</Typography>
+      </Box>
+
       <DialogContent>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
           <Rating
-            value={rating}
-            onChange={(_, v) => setRating(v)}
             size="large"
-          />
-          <TextField
-            multiline
-            rows={4}
-            fullWidth
-            placeholder="Your comments..."
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
+            value={rating}
+            onChange={(e, newValue) => setRating(newValue)}
           />
         </Box>
+        
+        <TextField
+          fullWidth
+          multiline
+          rows={4}
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder="What did you like or dislike about this chat?"
+          variant="outlined"
+          sx={{ 
+            bgcolor: 'white',
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 2
+            }
+          }}
+        />
+
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
+          <Button 
+            variant="contained" 
+            onClick={handleSubmit}
+            disabled={!rating} // Prevents empty ratings
+            sx={{ 
+              bgcolor: '#D7C7EB', 
+              color: 'black',
+              '&:hover': { bgcolor: '#c2b0e0' },
+              textTransform: 'none',
+              fontWeight: 'bold',
+              px: 4
+            }}
+          >
+            Submit
+          </Button>
+        </Box>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button variant="contained" onClick={handleSubmit} disabled={rating === 0}>
-          Submit
-        </Button>
-      </DialogActions>
     </Dialog>
   );
-}
+};
+
+export default FeedbackModal;
