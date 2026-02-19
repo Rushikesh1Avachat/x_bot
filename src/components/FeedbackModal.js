@@ -1,32 +1,43 @@
 import { useState } from "react";
 
-function FeedbackPage() {
-  const [filter, setFilter] = useState(0);
-  const feedbacks = JSON.parse(localStorage.getItem("feedback")) || [];
+function FeedbackModal({ close }) {
+  const [rating, setRating] = useState(0);
+  const [text, setText] = useState("");
 
-  const filtered =
-    filter === 0
-      ? feedbacks
-      : feedbacks.filter((f) => f.rating === filter);
+  const submitFeedback = () => {
+    const feedbacks = JSON.parse(localStorage.getItem("feedback")) || [];
+    feedbacks.push({ rating, text });
+    localStorage.setItem("feedback", JSON.stringify(feedbacks));
+    close(false);
+  };
 
   return (
-    <div>
-      <h2>All Feedback</h2>
+    <div className="modal">
+      <div className="modal-content">
+        <h3>Provide Additional Feedback</h3>
 
-      <select onChange={(e) => setFilter(Number(e.target.value))}>
-        <option value="0">All</option>
-        {[1,2,3,4,5].map((n) => (
-          <option key={n} value={n}>{n} Stars</option>
-        ))}
-      </select>
-
-      {filtered.map((f, i) => (
-        <div key={i}>
-          ⭐ {f.rating} - {f.text}
+        <div className="stars">
+          {[1,2,3,4,5].map((num) => (
+            <span
+              key={num}
+              onClick={() => setRating(num)}
+              className={rating >= num ? "active" : ""}
+            >
+              ★
+            </span>
+          ))}
         </div>
-      ))}
+
+        <textarea
+          placeholder="Write your feedback..."
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
+
+        <button onClick={submitFeedback}>Submit</button>
+      </div>
     </div>
   );
 }
 
-export default FeedbackPage;
+export default FeedbackModal;

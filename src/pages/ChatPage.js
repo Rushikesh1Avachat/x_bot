@@ -6,7 +6,7 @@ function ChatPage() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
 
-// ⭐ normalization function (Used to remove punctuation/spaces)
+  // ⭐ normalization function (FINAL FIX)
   const normalize = (str) =>
     str.toLowerCase().replace(/[^\w\s]/g, "").trim();
 
@@ -16,17 +16,16 @@ function ChatPage() {
 
     const userMessage = { sender: "user", text: input };
 
-    // Use the normalize function here to fix the ESLint warning
+    // ⭐ normalized matching
     const normalizedInput = normalize(input);
-    
-    // Also normalize the keys in sampleData for a perfect match
-    const matchKey = Object.keys(sampleData).find(
-      (key) => normalize(key) === normalizedInput
+
+    const key = Object.keys(sampleData).find(
+      (k) => normalize(k) === normalizedInput
     );
 
-    const reply = matchKey 
-      ? sampleData[matchKey] 
-      : "As an AI Language Model, I don't have the details";
+    const reply = key
+      ? sampleData[key]
+      : "Sorry, Did not understand your query!";
 
     const botMessage = { sender: "bot", text: reply };
 
