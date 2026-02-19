@@ -6,32 +6,33 @@ function ChatPage() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
 
-  // ⭐ normalization function (FINAL FIX)
+// ⭐ normalization function (Used to remove punctuation/spaces)
   const normalize = (str) =>
     str.toLowerCase().replace(/[^\w\s]/g, "").trim();
 
-const handleSubmit = (e) => {
-  e.preventDefault();
-  if (!input.trim()) return;
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!input.trim()) return;
 
-  const userMessage = { sender: "user", text: input };
+    const userMessage = { sender: "user", text: input };
 
-  // Normalize input to find the key regardless of casing
-  const normalizedInput = input.trim().toLowerCase();
-  const matchKey = Object.keys(sampleData).find(
-    (key) => key.toLowerCase() === normalizedInput
-  );
+    // Use the normalize function here to fix the ESLint warning
+    const normalizedInput = normalize(input);
+    
+    // Also normalize the keys in sampleData for a perfect match
+    const matchKey = Object.keys(sampleData).find(
+      (key) => normalize(key) === normalizedInput
+    );
 
-  // Retrieve matching response or the exact fallback string required by Cypress
-  const reply = matchKey 
-    ? sampleData[matchKey] 
-    : "As an AI Language Model, I don't have the details";
+    const reply = matchKey 
+      ? sampleData[matchKey] 
+      : "As an AI Language Model, I don't have the details";
 
-  const botMessage = { sender: "bot", text: reply };
+    const botMessage = { sender: "bot", text: reply };
 
-  setMessages((prev) => [...prev, userMessage, botMessage]);
-  setInput("");
-};
+    setMessages((prev) => [...prev, userMessage, botMessage]);
+    setInput("");
+  };
 
   const saveConversation = () => {
     const prev = JSON.parse(localStorage.getItem("chats")) || [];
